@@ -1,6 +1,6 @@
-import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction } from "@minecraft/server";
+import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction, ItemStack, ItemTypes } from "@minecraft/server";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
-import { PREFIX, historyIndexMap, historyMap, pos1Map, pos2Map } from "main";
+import { PREFIX, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, scoreboard, setWand } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPrimaryDirection, minVector3, rotateDirection, shiftVector3, tellError } from "utils";
 
 let commands = [
@@ -148,6 +148,16 @@ let commands = [
         extDescription: "Mirrors the clipboard\naxis: Axis to mirror clipboard over",
         usage: [
             "<mirrorAxis: x | z>"
+        ]
+    },
+    {
+        name: "wand",
+        alias: "",
+        function: wand,
+        description: "Sets or gives the wand item",
+        extDescription: "Sets or gives the wand item\nitemName: Name of the item to set as the wand. If not given the player is given the current wand item.",
+        usage: [
+            "[itemName: Item]"
         ]
     },
 ]
@@ -580,7 +590,7 @@ function set(args, player: Player) {
             typeId = 'minecraft:powder_snow';
         }
         if (BlockTypes.get(typeId) == undefined) {
-            tellError(player, `Block ${typeId} not found`);
+            
             return;
         }
     }
@@ -605,6 +615,21 @@ function remove(args, player: Player) {
     set(["minecraft:air"], player);
 }
 
+function wand(args, player: Player) {
+    if (args.length < 1) {
+        (player.getComponent('minecraft:inventory') as EntityInventoryComponent).container.addItem(currentWand.clone());
+        return;
+    }
+    let itemType = ItemTypes.get(args[0]);
+    if (itemType == undefined) {
+        tellError(player, `Item ${args[0]} not found`);
+        return;
+    }
+    scoreboard.removeParticipant('wand.' + currentWand.typeId);
+    scoreboard.setScore("wand." + itemType.id, 0);
+    setWand();
+    player.sendMessage(`§aSet wand item to ${currentWand.typeId}`)
+}
 
 function pos1(args, player: Player, pos: Vector3 = null) {
     switch(args[0]) {

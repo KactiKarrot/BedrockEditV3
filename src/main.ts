@@ -1,4 +1,4 @@
-import { world, system, Vector3, BlockPermutation, ScoreboardObjective, Player, EntityInventoryComponent} from "@minecraft/server";
+import { world, system, Vector3, BlockPermutation, ScoreboardObjective, Player, EntityInventoryComponent, ItemStack} from "@minecraft/server";
 import { commands, pos1, pos2 } from "commands";
 import { compareVector3, tellError } from "utils";
 
@@ -19,20 +19,29 @@ export let historyIndexMap = new Map<string, number>();
 export let historyMap = new Map<string, Array<Array<HistoryEntry>>>();
 
 export let scoreboard: ScoreboardObjective;
-export let wand = "minecraft:wooden_axe";
+export let currentWand = new ItemStack('minecraft:wooden_axe', 1);
+export const WAND_NAME = '§bBedrockEdit Wand';
+export const WAND_LORE = ['Sets Position 1 and Position 2 without commands', "Press 'Attack/Destroy' to set Position 1", "Press 'Use' to set Position 2"];
+
 
 world.afterEvents.worldInitialize.subscribe(() => {
     scoreboard = world.scoreboard.getObjective("_beData")
     if (scoreboard == null) {
         scoreboard = world.scoreboard.addObjective("_beData", "_beData");
-        scoreboard.setScore("wand.wooden_axe", 0);
+        scoreboard.setScore("wand.minecraft:wooden_axe", 0);
     }
+    setWand();
+})
+
+export function setWand() {
     scoreboard.getParticipants().forEach((e) => {
         if (e.displayName.substring(0, 5) == "wand.") {
-            wand = "minecraft:" + e.displayName.substring(5);
+            currentWand = new ItemStack(e.displayName.substring(5));
+            currentWand.nameTag = WAND_NAME;
+            currentWand.setLore(WAND_LORE);
         }
     })
-})
+}
 
 world.beforeEvents.chatSend.subscribe((data) => {
     const player = data.sender;
@@ -61,7 +70,7 @@ world.beforeEvents.chatSend.subscribe((data) => {
 })
 
 world.beforeEvents.playerBreakBlock.subscribe((data) => {
-    if (data.player.hasTag("BEAdmin") && (data.player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(data.player.selectedSlot)?.typeId == wand) {
+    if (data.player.hasTag("BEAdmin") && (data.player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(data.player.selectedSlot)?.typeId == currentWand.typeId) {
         system.run(() => {pos1(['facing'], data.player)});
         data.cancel = true;
     }
@@ -70,14 +79,14 @@ world.beforeEvents.playerBreakBlock.subscribe((data) => {
 world.afterEvents.entityHitBlock.subscribe((data) => {
     if (data.damagingEntity.typeId == 'minecraft:player') {
         let player = data.damagingEntity as Player;
-        if (player.hasTag("BEAdmin") && (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId == wand) {
+        if (player.hasTag("BEAdmin") && (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId == currentWand.typeId) {
             pos1(['facing'], player);
         }
     }
 })
 
 world.afterEvents.playerInteractWithBlock.subscribe((data) => {
-    if(data.player.hasTag("BEAdmin") && data.itemStack?.typeId == wand && !compareVector3(data.block.location, pos2Map.get(data.player.name))) {
+    if(data.player.hasTag("BEAdmin") && data.itemStack?.typeId == currentWand.typeId && !compareVector3(data.block.location, pos2Map.get(data.player.name))) {
         pos2(['facing'], data.player);
     }
 })
