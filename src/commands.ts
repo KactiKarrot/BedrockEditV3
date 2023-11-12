@@ -1,7 +1,7 @@
 import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction } from "@minecraft/server";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
 import { PREFIX, historyIndexMap, historyMap, pos1Map, pos2Map } from "main";
-import { addHistoryEntry, addToHistoryEntry, addVector3, ceilVector3, compareVector3, diffVector3, floorVector3, getHistory, getPrimaryDirection, minVector3, rotateDirection, shiftVector3, tell, tellError } from "utils";
+import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPrimaryDirection, minVector3, rotateDirection, shiftVector3, tellError } from "utils";
 
 let commands = [
     {
@@ -9,6 +9,7 @@ let commands = [
         alias: "?",
         function: help,
         description: "Lists all commands and what they do",
+        extDescription: "Lists all commands and what they do",
         usage: [
             "",
             "[page: int]",
@@ -20,6 +21,7 @@ let commands = [
         alias: "cp",
         function: copy,
         description: "Copies a region to the player's clipboard",
+        extDescription: "Copies a region to the player's clipboard",
         usage: [
             ""
         ]
@@ -29,6 +31,7 @@ let commands = [
         alias: "",
         function: cut,
         description: "Cuts a region to the player's clipboard",
+        extDescription: "Cuts a region to the player's clipboard",
         usage: [
             ""
         ]
@@ -38,6 +41,7 @@ let commands = [
         alias: "",
         function: paste,
         description: "Pastes a region from the player's clipboard",
+        extDescription: "Pastes a region from the player's clipboard\n-a: Doesn't paste air blocks",
         usage: [
             "[-a]"
         ]
@@ -47,6 +51,7 @@ let commands = [
         alias: "p1",
         function: pos1,
         description: "Saves a position to pos1",
+        extDescription: "Saves a position to pos1\nfacing: Gets block from player's view vector\n-l: Includes liquid blocks (such as water) in the position selection (normally passes through)\n-p: Includes passable blocks (such as vines) in the position selection (normally passes through)\nposition: Gets block from given coordinates",
         usage: [
             "",
             "facing [-lp]",
@@ -57,7 +62,8 @@ let commands = [
         name: "pos2",
         alias: "p2",
         function: pos2,
-        description: "Saves a position to pos1",
+        description: "Saves a position to pos2",
+        extDescription: "Saves a position to pos2\nfacing: Gets block from player's view vector\n-l: Includes liquid blocks (such as water) in the position selection (normally passes through)\n-p: Includes passable blocks (such as vines) in the position selection (normally passes through)\nposition: Gets block from given coordinates",
         usage: [
             "",
             "facing [-lp]",
@@ -69,6 +75,7 @@ let commands = [
         alias: "",
         function: set,
         description: "Sets selection to given or held block",
+        extDescription: "Sets selection to given or held block\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
             "[tileName: Block]"
         ]
@@ -78,6 +85,7 @@ let commands = [
         alias: "rm",
         function: remove,
         description: "Removes a selection",
+        extDescription: "Removes a selection",
         usage: [
             ""
         ]
@@ -87,6 +95,7 @@ let commands = [
         alias: "",
         function: undo,
         description: "Undoes an action",
+        extDescription: "Undoes an action",
         usage: [
             ""
         ]
@@ -96,6 +105,7 @@ let commands = [
         alias: "",
         function: redo,
         description: "Redoes an action",
+        extDescription: "Redoes an action",
         usage: [
             ""
         ]
@@ -105,15 +115,17 @@ let commands = [
         alias: "mv",
         function: move,
         description: "Moves the selection",
+        extDescription: "Moves the selection\ndistance: Distance to move selection (defaults to 1)\ndirection: Direciton to move selection (defaults to me/facing/forward)\n-a: Doesn't move air blocks",
         usage: [
-            "[distance: int] [me|facing|forward|right|backward|left|north|east|south|west|up|down] [-a]"
+            "[distance: int] [direction: me|facing|forward|right|backward|left|north|east|south|west|up|down] [-a]"
         ]
     },
     {
         name: "stack",
         alias: "",
         function: stack,
-        description: "Moves the selection",
+        description: "Stacks the selection",
+        extDescription: "Stacks the selection\namount: Number of times to copy selection\noffset: Amount of blocks between each copy\n-a: Doesn't stack air blocks",
         usage: [
             "[amount: int] [me|facing|forward|right|backward|left|north|east|south|west|up|down] [offset: int] [-a]"
         ]
@@ -123,6 +135,7 @@ let commands = [
         alias: "",
         function: rotate,
         description: "Rotates the clipboard",
+        extDescription: "Rotates the clipboard\nangle: Angle to rotate clipboard (must be 90, 180, or 270)",
         usage: [
             "<rotationAngle: angle>"
         ]
@@ -131,9 +144,10 @@ let commands = [
         name: "mirror",
         alias: "flip",
         function: mirror,
-        description: "Rotates the clipboard",
+        description: "Mirrors the clipboard",
+        extDescription: "Mirrors the clipboard\naxis: Axis to mirror clipboard over",
         usage: [
-            "<rotationAngle: angle>"
+            "<mirrorAxis: x | z>"
         ]
     },
 ]
@@ -156,11 +170,13 @@ function help(args, player: Player) {
             if (commands[index].alias != '') {
                 msg += ` (also ${commands[index].alias})`
             }
-            msg += `\\n§e${commands[index].description}\\n§rUsage`;
+            msg += ':';
+            msg += `\n§e${commands[index].extDescription}\n§rUsage`;
             commands[index].usage.forEach((e) => {
-                msg += `\\n- ${PREFIX}${commands[index].name} ${e}`
+                msg += `\n- ${PREFIX}${commands[index].name} ${e}`
             })
-            tell(player, msg);
+            // player.sendMessage(msg);
+            player.sendMessage(msg)
             return
         }
     }
@@ -173,13 +189,13 @@ function help(args, player: Player) {
     }
     let msg = `§2--- Showing help page ${startPage + 1} of ${Math.ceil(commands.length / 7)} (${PREFIX}help <page>) ---`;
     for (let i = startPage * 7; i < commands.length; i++) {
-        msg += `\\n§r- ${PREFIX}${commands[i].name}: §b${commands[i].description}`
+        msg += `\n§r- ${PREFIX}${commands[i].name}: §b${commands[i].description}`
         if (i >= startPage * 7 + 6) {
             break;
         }
     }
-    // tell(player, `§7- ${PREFIX}help: §bLists all commands and what they do\\n§7- ${PREFIX}copy: §bCopies a region to the player's clipboard\\n§7- ${PREFIX}cut: §bCuts a region to the player's clipboard\\n§7- ${PREFIX}paste: §bPastes a region from the player's clipboard\\n§7- ${PREFIX}pos1: §bSaves your current position to pos1\\n§7- ${PREFIX}pos2: §bSaves your current position to pos2`)
-    tell(player, msg);
+    // player.sendMessage(`§7- ${PREFIX}help: §bLists all commands and what they do\n§7- ${PREFIX}copy: §bCopies a region to the player's clipboard\n§7- ${PREFIX}cut: §bCuts a region to the player's clipboard\n§7- ${PREFIX}paste: §bPastes a region from the player's clipboard\n§7- ${PREFIX}pos1: §bSaves your current position to pos1\n§7- ${PREFIX}pos2: §bSaves your current position to pos2`)
+    player.sendMessage(msg)
 }
 
 function undo(args, player:Player) {
@@ -196,7 +212,7 @@ function undo(args, player:Player) {
         player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].pre.clone())
     }
     historyIndexMap.set(player.name, historyIndexMap.get(player.name) + 1);
-    tell(player, `§aUndid ${entry.length} block changes`)
+    player.sendMessage(`§aUndid ${entry.length} block changes`)
 }
 
 function redo(args, player: Player) {
@@ -213,7 +229,7 @@ function redo(args, player: Player) {
     for (let i = 0; i < entry.length; i++) {
         player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].post.clone())
     }
-    tell(player, `§aRedid ${entry.length} block changes`)
+    player.sendMessage(`§aRedid ${entry.length} block changes`)
 }
 
 function move(args, player: Player) {
@@ -361,7 +377,7 @@ function move(args, player: Player) {
     }
     pos1Map.set(player.name, shiftVector3(pos1Map.get(player.name), direction, amount));
     pos2Map.set(player.name, shiftVector3(pos2Map.get(player.name), direction, amount));
-    tell(player, `§aMoved ${selSize.x * selSize.y * selSize.z} blocks`)
+    player.sendMessage(`§aMoved ${selSize.x * selSize.y * selSize.z} blocks`)
 }
 
 function stack(args, player: Player) {
@@ -543,17 +559,26 @@ function stack(args, player: Player) {
             }
         }
     }
-    tell(player, `Stacked selection ${amount} times`)
+    player.sendMessage(`Stacked selection ${amount} times`)
 }
 
 function set(args, player: Player) {
     let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
-    let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot).typeId;
-    if (BlockTypes.get(typeId) == undefined) {
+    let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId;
+    if (typeId == undefined || BlockTypes.get(typeId) == undefined) {
         typeId = "minecraft:air";
     }
     if (args.length > 0) {
         typeId = args[0];
+        if (args[0] == 'minecraft:water_bucket') {
+            typeId = 'minecraft:water';
+        }
+        if (args[0] == 'minecraft:lava_bucket') {
+            typeId = 'minecraft:lava';
+        }
+        if (args[0] == 'minecraft:powder_snow_bucket') {
+            typeId = 'minecraft:powder_snow';
+        }
         if (BlockTypes.get(typeId) == undefined) {
             tellError(player, `Block ${typeId} not found`);
             return;
@@ -573,7 +598,7 @@ function set(args, player: Player) {
             }
         }
     }
-    tell(player, `§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${typeId}`);
+    player.sendMessage(`§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${typeId}`);
 }
 
 function remove(args, player: Player) {
@@ -648,7 +673,7 @@ function pos1(args, player: Player, pos: Vector3 = null) {
     }
     if (!compareVector3(pos, pos1Map.get(player.name))) {
         pos1Map.set(player.name, pos);
-        tell(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
     }
 }
 
@@ -718,16 +743,12 @@ function pos2(args, player: Player, pos: Vector3 = null) {
     }
     if (!compareVector3(pos, pos2Map.get(player.name))) {
         pos2Map.set(player.name, pos);
-        tell(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
     }
 }
 
 export {
     commands,
-    help,
-    copy,
-    cut,
-    paste,
     pos1,
     pos2
 }

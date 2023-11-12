@@ -1,22 +1,139 @@
 import { Direction } from "@minecraft/server";
-import { commands } from "commands";
-import { PREFIX, historyMap, clipMap, historyIndexMap } from "main";
-export function tell(player, msg) {
-    player.dimension.runCommand(`tellraw "${player.nameTag}" {"rawtext":[{"text":"${msg}"}]}`);
-}
+import { historyMap, clipMap, historyIndexMap } from "main";
 export function tellError(player, msg) {
-    tell(player, `§cError: ${msg}`);
+    player.sendMessage(`§cError: ${msg}`);
 }
-export function getHelp(commandName) {
-    let cmd = commands[commands.map(function (e) { return e.name; }).indexOf(commandName)];
-    let msg = `copy\\n${cmd.description}`;
-    if (cmd.usage.length > 0) {
-        msg += `\\nUsage:`;
-        cmd.usage.forEach((e) => {
-            msg += `\\n${PREFIX + cmd.name} ${e}`;
-        });
+// WILL NOT ROTATE GLOW LICHEN OR SCULK VEIN
+export function rotatePerm(perm) {
+    switch (perm.getState('weirdo_direction')) {
+        case 0: {
+            return perm.withState('weirdo_direction', 2);
+        }
+        case 1: {
+            return perm.withState('weirdo_direction', 3);
+        }
+        case 2: {
+            return perm.withState('weirdo_direction', 1);
+        }
+        case 3: {
+            return perm.withState('weirdo_direction', 0);
+        }
     }
-    return msg;
+    switch (perm.getState('coral_direction')) {
+        case 0: {
+            return perm.withState('coral_direction', 2);
+        }
+        case 1: {
+            return perm.withState('coral_direction', 3);
+        }
+        case 2: {
+            return perm.withState('coral_direction', 1);
+        }
+        case 3: {
+            return perm.withState('coral_direction', 0);
+        }
+    }
+    switch (perm.getState('direction')) {
+        case 0: {
+            return perm.withState('direction', 1);
+        }
+        case 1: {
+            return perm.withState('direction', 2);
+        }
+        case 2: {
+            return perm.withState('direction', 3);
+        }
+        case 3: {
+            return perm.withState('direction', 0);
+        }
+    }
+    switch (perm.getState('facing_direction')) {
+        case 'north': {
+            return perm.withState('facing_direction', 'east');
+        }
+        case 'east': {
+            return perm.withState('facing_direction', 'south');
+        }
+        case 'south': {
+            return perm.withState('facing_direction', 'west');
+        }
+        case 'west': {
+            return perm.withState('facing_direction', 'north');
+        }
+    }
+    switch (perm.getState('lever_direction')) {
+        case 'down_east_west': {
+            return perm.withState('lever_direction', 'down_north_south');
+        }
+        case 'down_east_west': {
+            return perm.withState('lever_direction', 'down_north_south');
+        }
+        case 'up_east_west': {
+            return perm.withState('lever_direction', 'up_north_south');
+        }
+        case 'up_east_west': {
+            return perm.withState('lever_direction', 'up_north_south');
+        }
+        case 'north': {
+            return perm.withState('lever_direction', 'east');
+        }
+        case 'east': {
+            return perm.withState('lever_direction', 'south');
+        }
+        case 'south': {
+            return perm.withState('lever_direction', 'west');
+        }
+        case 'west': {
+            return perm.withState('lever_direction', 'north');
+        }
+    }
+    switch (perm.getState('rail_direction')) {
+        case 0: {
+            return perm.withState('rail_direction', 1);
+        }
+        case 1: {
+            return perm.withState('rail_direction', 0);
+        }
+        case 2: {
+            return perm.withState('rail_direction', 5);
+        }
+        case 3: {
+            return perm.withState('rail_direction', 4);
+        }
+        case 4: {
+            return perm.withState('rail_direction', 2);
+        }
+        case 5: {
+            return perm.withState('rail_direction', 3);
+        }
+        case 6: {
+            return perm.withState('rail_direction', 7);
+        }
+        case 7: {
+            return perm.withState('rail_direction', 8);
+        }
+        case 8: {
+            return perm.withState('rail_direction', 9);
+        }
+        case 9: {
+            return perm.withState('rail_direction', 6);
+        }
+    }
+    switch (perm.getState('torch_facing_direction')) {
+        case 'north': {
+            return perm.withState('torch_facing_direction', 'east');
+        }
+        case 'east': {
+            return perm.withState('torch_facing_direction', 'south');
+        }
+        case 'south': {
+            return perm.withState('torch_facing_direction', 'west');
+        }
+        case 'west': {
+            return perm.withState('torch_facing_direction', 'north');
+        }
+    }
+    return perm;
 }
 // Return east is default case
 export function getPrimaryDirection(a) {

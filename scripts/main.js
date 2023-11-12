@@ -59,7 +59,7 @@ world.afterEvents.entityHitBlock.subscribe((data) => {
     }
 });
 world.afterEvents.playerInteractWithBlock.subscribe((data) => {
-    if (data.player.hasTag("BEAdmin") && data.itemStack.typeId == wand && !compareVector3(data.block.location, pos2Map.get(data.player.name))) {
+    if (data.player.hasTag("BEAdmin") && data.itemStack?.typeId == wand && !compareVector3(data.block.location, pos2Map.get(data.player.name))) {
         pos2(['facing'], data.player);
     }
 });
