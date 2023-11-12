@@ -1,6 +1,6 @@
 import { BlockPermutation, BlockTypes, Direction, ItemTypes } from "@minecraft/server";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
-import { PREFIX, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, scoreboard, setWand } from "main";
+import { PREFIX, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, scoreboard, setWand } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPrimaryDirection, minVector3, rotateDirection, shiftVector3, tellError } from "utils";
 let commands = [
     {
@@ -517,6 +517,7 @@ function remove(args, player) {
 function wand(args, player) {
     if (args.length < 1) {
         player.getComponent('minecraft:inventory').container.addItem(currentWand.clone());
+        player.sendMessage(`You have been given ${WAND_NAME}`);
         return;
     }
     let itemType = ItemTypes.get(args[0]);
