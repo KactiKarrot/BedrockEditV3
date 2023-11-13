@@ -243,6 +243,14 @@ function redo(args, player: Player) {
 }
 
 function move(args, player: Player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
     let amount = 1
     if (args.length >= 1) {
         if (Number.isNaN(parseInt(args[0]))) {
@@ -391,6 +399,15 @@ function move(args, player: Player) {
 }
 
 function stack(args, player: Player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+
     let amount = 1
 
     //#region Args
@@ -573,6 +590,14 @@ function stack(args, player: Player) {
 }
 
 function set(args, player: Player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
     let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
     let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId;
     if (typeId == undefined || BlockTypes.get(typeId) == undefined) {

@@ -239,6 +239,14 @@ function redo(args, player) {
     player.sendMessage(`§aRedid ${entry.length} block changes`);
 }
 function move(args, player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
     let amount = 1;
     if (args.length >= 1) {
         if (Number.isNaN(parseInt(args[0]))) {
@@ -341,6 +349,14 @@ function move(args, player) {
     player.sendMessage(`§aMoved ${selSize.x * selSize.y * selSize.z} blocks`);
 }
 function stack(args, player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
     let amount = 1;
     //#region Args
     if (args.length == 0) {
@@ -475,6 +491,14 @@ function stack(args, player) {
     player.sendMessage(`Stacked selection ${amount} times`);
 }
 function set(args, player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
     let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
     let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId;
     if (typeId == undefined || BlockTypes.get(typeId) == undefined) {

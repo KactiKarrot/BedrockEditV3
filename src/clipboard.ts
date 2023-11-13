@@ -5,9 +5,13 @@ import { addHistoryEntry, addToHistoryEntry, addVector3, ceilVector3, diffVector
 
 
 function copy(args, player: Player) {
-    if (!pos1Map.has(player.name) || !pos2Map.has(player.name)) {
-        tellError(player, "Position 1 or 2 not set!");
-        return
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
     }
     relPosMap.set(player.name, subVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), ceilVector3(player.location)));
     setClipSize(player.name, addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name))));
@@ -50,9 +54,10 @@ function cut(args, player: Player) {
 }
 
 function paste(args, player: Player) {
-    // if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
-    //     tellError(player, "Position 1 not set!");
-    // }
+    if (!clipMap.has(player.name) || clipMap.get(player.name).length <= 0 || clipMap.get(player.name).length[0] <= 0 || clipMap.get(player.name).length[0][0] <= 0) {
+        tellError(player, `Nothing in clipboard`);
+        return;
+    }
     if (!relPosMap.has(player.name) || (args.length > 0 && args[0] == '-p1')) {
         relPosMap.set(player.name, subVector3(pos1Map.get(player.name), ceilVector3(player.location)));
     }
@@ -102,6 +107,10 @@ function rotate(args, player: Player) {
             break;
         }
     }
+    if (!clipMap.has(player.name) || clipMap.get(player.name).length <= 0 || clipMap.get(player.name).length[0] <= 0 || clipMap.get(player.name).length[0][0] <= 0) {
+        tellError(player, `Nothing in clipboard`);
+        return;
+    }
     let oldClip = clipMap.get(player.name);
     let clipSize = getClipSize(player.name);
     clipSize = {
@@ -138,6 +147,10 @@ function mirror(args, player: Player) {
     let axis = args[0].toLowerCase();
     if (axis != 'x' && axis != 'z') {
         tellError(player, `Invalid axis: '${args[0]}'`)
+        return;
+    }
+    if (!clipMap.has(player.name) || clipMap.get(player.name).length <= 0 || clipMap.get(player.name).length[0] <= 0 || clipMap.get(player.name).length[0][0] <= 0) {
+        tellError(player, `Nothing in clipboard`);
         return;
     }
     let oldClip = clipMap.get(player.name);
