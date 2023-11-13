@@ -2,6 +2,7 @@ import { world, system, ItemStack } from "@minecraft/server";
 import { commands, pos1, pos2 } from "commands";
 import { compareVector3, tellError } from "utils";
 export const PREFIX = "./";
+export const VERSION = "3.0.0-beta1";
 export let pos1Map = new Map(); // <playerName, position>
 export let pos2Map = new Map(); // <playerName, position>
 export let relPosMap = new Map();
@@ -12,13 +13,17 @@ export let scoreboard;
 export let currentWand = new ItemStack('minecraft:wooden_axe', 1);
 export const WAND_NAME = '§bBedrockEdit Wand';
 export const WAND_LORE = ['Sets Position 1 and Position 2 without commands', "Press 'Attack/Destroy' to set Position 1", "Press 'Use' to set Position 2"];
+export let welcomeMessage = true;
 world.afterEvents.worldInitialize.subscribe(() => {
     scoreboard = world.scoreboard.getObjective("_beData");
-    if (scoreboard == null) {
+    if (scoreboard == null || scoreboard == undefined) {
         scoreboard = world.scoreboard.addObjective("_beData", "_beData");
         scoreboard.setScore("wand.minecraft:wooden_axe", 0);
     }
     setWand();
+    if (scoreboard.hasParticipant('welcomeMsg')) {
+        welcomeMessage = false;
+    }
 });
 export function setWand() {
     scoreboard.getParticipants().forEach((e) => {
@@ -29,6 +34,15 @@ export function setWand() {
         }
     });
 }
+export function setWelcome() {
+    welcomeMessage = !welcomeMessage;
+    if (welcomeMessage && scoreboard.hasParticipant('welcomeMsg')) {
+        scoreboard.removeParticipant('welcomeMsg');
+    }
+    else if (!welcomeMessage) {
+        scoreboard.setScore('welcomeMsg', 0);
+    }
+}
 world.beforeEvents.chatSend.subscribe((data) => {
     const player = data.sender;
     const msg = data.message;
@@ -37,8 +51,8 @@ world.beforeEvents.chatSend.subscribe((data) => {
     }
     data.cancel = true;
     system.run(() => {
-        const cmd = msg.split(" ")[0].substring(PREFIX.length);
-        const args = msg.split(" ").slice(1);
+        const cmd = msg.substring(PREFIX.length).split(" ")[0];
+        const args = msg.substring(PREFIX.length).split(" ").slice(1);
         let found = false;
         commands.forEach((c) => {
             if (cmd == c.name || cmd == c.alias) {
@@ -68,5 +82,11 @@ world.afterEvents.entityHitBlock.subscribe((data) => {
 world.afterEvents.playerInteractWithBlock.subscribe((data) => {
     if (data.player.hasTag("BEAdmin") && data.itemStack?.typeId == currentWand.typeId && !compareVector3(data.block.location, pos2Map.get(data.player.name))) {
         pos2(['facing'], data.player);
+    }
+});
+world.afterEvents.playerSpawn.subscribe((data) => {
+    if (welcomeMessage) {
+        data.player.sendMessage(`<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`);
+        data.player.sendMessage(`<§bBedrockEdit§r> §aTo get started, run ${PREFIX}help`);
     }
 });

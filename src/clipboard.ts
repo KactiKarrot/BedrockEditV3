@@ -54,7 +54,7 @@ function cut(args, player: Player) {
 }
 
 function paste(args, player: Player) {
-    if (!clipMap.has(player.name) || clipMap.get(player.name).length <= 0 || clipMap.get(player.name).length[0] <= 0 || clipMap.get(player.name).length[0][0] <= 0) {
+    if (!clipMap.has(player.name)) {
         tellError(player, `Nothing in clipboard`);
         return;
     }
@@ -107,7 +107,7 @@ function rotate(args, player: Player) {
             break;
         }
     }
-    if (!clipMap.has(player.name) || clipMap.get(player.name).length <= 0 || clipMap.get(player.name).length[0] <= 0 || clipMap.get(player.name).length[0][0] <= 0) {
+    if (!clipMap.has(player.name)) {
         tellError(player, `Nothing in clipboard`);
         return;
     }
@@ -149,7 +149,7 @@ function mirror(args, player: Player) {
         tellError(player, `Invalid axis: '${args[0]}'`)
         return;
     }
-    if (!clipMap.has(player.name) || clipMap.get(player.name).length <= 0 || clipMap.get(player.name).length[0] <= 0 || clipMap.get(player.name).length[0][0] <= 0) {
+    if (!clipMap.has(player.name)) {
         tellError(player, `Nothing in clipboard`);
         return;
     }

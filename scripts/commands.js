@@ -1,6 +1,6 @@
 import { BlockPermutation, BlockTypes, Direction, ItemTypes } from "@minecraft/server";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
-import { PREFIX, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, scoreboard, setWand } from "main";
+import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, scoreboard, setWand, setWelcome, welcomeMessage } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPrimaryDirection, minVector3, rotateDirection, shiftVector3, tellError } from "utils";
 let commands = [
     {
@@ -159,6 +159,26 @@ let commands = [
             "[itemName: Item]"
         ]
     },
+    {
+        name: "welcome",
+        alias: "",
+        function: welcome,
+        description: "Toggles the welcome message shown to all players on join",
+        extDescription: "Toggles the welcome message shown to all players on join",
+        usage: [
+            ""
+        ]
+    },
+    {
+        name: "version",
+        alias: "",
+        function: version,
+        description: "Prints the current version",
+        extDescription: "Prints the current version",
+        usage: [
+            ""
+        ]
+    },
 ];
 function help(args, player) {
     if (args.length > 0 && isNaN(parseInt(args[0]))) {
@@ -205,6 +225,18 @@ function help(args, player) {
     }
     // player.sendMessage(`§7- ${PREFIX}help: §bLists all commands and what they do\n§7- ${PREFIX}copy: §bCopies a region to the player's clipboard\n§7- ${PREFIX}cut: §bCuts a region to the player's clipboard\n§7- ${PREFIX}paste: §bPastes a region from the player's clipboard\n§7- ${PREFIX}pos1: §bSaves your current position to pos1\n§7- ${PREFIX}pos2: §bSaves your current position to pos2`)
     player.sendMessage(msg);
+}
+function welcome(args, player) {
+    setWelcome();
+    if (welcomeMessage) {
+        player.sendMessage('§aWelcome message enabled');
+    }
+    else {
+        player.sendMessage('§aWelcome message disabled');
+    }
+}
+function version(args, player) {
+    player.sendMessage(`<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`);
 }
 function undo(args, player) {
     if (historyMap.get(player.name) == undefined || historyMap.get(player.name).length <= 0) {
