@@ -61,4 +61,20 @@ I've started this project in the past, first with mcfunctions, then using BEAPI 
 ```
 
 ### Clipboard
+#### copy (or cp)
+<p> Copies selection to the player's clipboard </p>
+<p> Syntax: </p>
+
+```
+./copy
+```
+
+#### cut
+<p> Copies selection to the player's clipboard and rmeove it from the world </p>
+<p> Syntax: </p>
+
+```
+./cut
+```
+
 ### World Manipulation
