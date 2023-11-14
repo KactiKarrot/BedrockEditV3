@@ -736,12 +736,24 @@ function pos1(args, player, pos = null) {
                 args[3] = ' ' + args[3];
             }
             if (args[1].length > 1) {
+                if (isNaN(parseInt(args[1].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[1]}`);
+                    return;
+                }
                 pos.x += parseInt(args[1].substring(1));
             }
             if (args[2].length > 1) {
+                if (isNaN(parseInt(args[2].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[2]}`);
+                    return;
+                }
                 pos.y += parseInt(args[2].substring(1));
             }
             if (args[3].length > 1) {
+                if (isNaN(parseInt(args[3].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[3]}`);
+                    return;
+                }
                 pos.z += parseInt(args[3].substring(1));
             }
             break;
@@ -808,12 +820,24 @@ function pos2(args, player, pos = null) {
                 args[3] = ' ' + args[3];
             }
             if (args[1].length > 1) {
+                if (isNaN(parseInt(args[1].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[1]}`);
+                    return;
+                }
                 pos.x += parseInt(args[1].substring(1));
             }
             if (args[2].length > 1) {
+                if (isNaN(parseInt(args[2].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[2]}`);
+                    return;
+                }
                 pos.y += parseInt(args[2].substring(1));
             }
             if (args[3].length > 1) {
+                if (isNaN(parseInt(args[3].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[3]}`);
+                    return;
+                }
                 pos.z += parseInt(args[3].substring(1));
             }
             break;
