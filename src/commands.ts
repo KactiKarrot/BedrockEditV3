@@ -235,7 +235,6 @@ function welcome(args, player: Player) {
     } else {
         player.sendMessage('§aWelcome message disabled')
     }
-    
 }
 
 function version(args, player: Player) {
@@ -830,6 +829,18 @@ function pos2(args, player: Player, pos: Vector3 = null) {
         pos2Map.set(player.name, pos);
         player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
     }
+}
+
+function ellipse(args, player: Player) {
+    let width = 15;
+    let height = 19;
+    enum CircleModes {
+        THICK = 'thick',
+        THIN = 'thin',
+        FILL = 'fill'
+    }
+    let mode = CircleModes.THICK;
+    let forceCircle = false;
 }
 
 export {
