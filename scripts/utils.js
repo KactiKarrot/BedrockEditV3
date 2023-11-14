@@ -1,7 +1,31 @@
-import { Direction } from "@minecraft/server";
+import { BlockPermutation, Direction, BlockTypes } from "@minecraft/server";
 import { historyMap, clipMap, historyIndexMap } from "main";
 export function tellError(player, msg) {
     player.sendMessage(`§cError: ${msg}`);
+}
+export function getPermFromHand(player) {
+    let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId;
+    if (typeId == 'minecraft:water_bucket') {
+        typeId = 'minecraft:water';
+    }
+    if (typeId == 'minecraft:lava_bucket') {
+        typeId = 'minecraft:lava';
+    }
+    if (typeId == 'minecraft:powder_snow_bucket') {
+        typeId = 'minecraft:powder_snow';
+    }
+    if (typeId == undefined || BlockTypes.get(typeId) == undefined) {
+        typeId = "minecraft:air";
+    }
+    return BlockPermutation.resolve(typeId);
+}
+export function setBlockAt(player, pos, perm) {
+    addToHistoryEntry(player.name, {
+        pos: pos,
+        pre: player.dimension.getBlock(pos).permutation.clone(),
+        post: perm.clone()
+    });
+    player.dimension.getBlock(pos).setPermutation(perm);
 }
 // WILL NOT ROTATE GLOW LICHEN OR SCULK VEIN
 export function rotatePerm(perm) {

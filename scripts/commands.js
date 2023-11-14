@@ -1,7 +1,8 @@
 import { BlockPermutation, BlockTypes, Direction, ItemTypes } from "@minecraft/server";
+import { generateEllipse, generateEllipsoid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
 import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, scoreboard, setWand, setWelcome, welcomeMessage } from "main";
-import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPrimaryDirection, minVector3, rotateDirection, shiftVector3, tellError } from "utils";
+import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
 let commands = [
     {
         name: "help",
@@ -171,7 +172,7 @@ let commands = [
     },
     {
         name: "version",
-        alias: "",
+        alias: "ver",
         function: version,
         description: "Prints the current version",
         extDescription: "Prints the current version",
@@ -179,7 +180,152 @@ let commands = [
             ""
         ]
     },
+    {
+        name: "cylinder",
+        alias: "cyl",
+        function: cylinder,
+        description: "Generates a cylinder",
+        extDescription: "Generates an cylinder between Position 1 and Position 2",
+        usage: [
+            "[direction: ud | ns | ew] [border: thick | thin | filled] [tileName: Block]"
+        ]
+    },
+    {
+        name: "ellipsoid",
+        alias: "sphere",
+        function: ellipsoid,
+        description: "Generates an ellipsoid",
+        extDescription: "Generates an ellipsoid between Position 1 and Position 2",
+        usage: [
+            "[border: thick | thin | filled] [tileName: Block]"
+        ]
+    },
 ];
+function cylinder(args, player) {
+    let direction = 'ud';
+    let mode = 'filled';
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'ud' && args[0].toLowerCase() != 'ns' && args[0].toLowerCase() != 'ew') {
+            tellError(player, `Invalid direction: ${args[0]}`);
+            return;
+        }
+        direction = args[0].toLowerCase();
+    }
+    if (args.length >= 2) {
+        if (args[1].toLowerCase() != 'thick' && args[1].toLowerCase() != 'thin' && args[1].toLowerCase() != 'filled') {
+            tellError(player, `Invalid border: ${args[1]}`);
+            return;
+        }
+        mode = args[1].toLowerCase();
+    }
+    if (args.length >= 3 && args[2] != '') {
+        if (BlockTypes.get(args[2]) == undefined) {
+            tellError(player, `Block ${args[2]} not found`);
+            return;
+        }
+        perm = BlockPermutation.resolve(args[2]);
+    }
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    let mat;
+    switch (direction) {
+        case 'ud': {
+            mat = generateEllipse(selSize.x, selSize.z, mode);
+            break;
+        }
+        case 'ns': {
+            mat = generateEllipse(selSize.x, selSize.y, mode);
+            break;
+        }
+        case 'ew': {
+            mat = generateEllipse(selSize.z, selSize.y, mode);
+            break;
+        }
+    }
+    let blockCount = 0;
+    addHistoryEntry(player.name);
+    for (let i = 0; i < selSize.x; i++) {
+        for (let j = 0; j < selSize.y; j++) {
+            for (let k = 0; k < selSize.z; k++) {
+                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
+                switch (direction) {
+                    case 'ud': {
+                        if (mat[i][k].valueOf() == true) {
+                            setBlockAt(player, pos, perm.clone());
+                            blockCount++;
+                        }
+                        break;
+                    }
+                    case 'ns': {
+                        if (mat[i][j].valueOf() == true) {
+                            setBlockAt(player, pos, perm.clone());
+                            blockCount++;
+                        }
+                        break;
+                    }
+                    case 'ew': {
+                        if (mat[k][j].valueOf() == true) {
+                            setBlockAt(player, pos, perm.clone());
+                            blockCount++;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    player.sendMessage(`§aSuccessfully generated cylinder (${blockCount} blocks)`);
+}
+function ellipsoid(args, player) {
+    let mode = 'filled';
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
+            tellError(player, `Invalid border: ${args[1]}`);
+            return;
+        }
+        mode = args[0].toLowerCase();
+    }
+    if (args.length >= 2 && args[1] != '') {
+        if (BlockTypes.get(args[1]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`);
+            return;
+        }
+        perm = BlockPermutation.resolve(args[1]);
+    }
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    let mat = generateEllipsoid(selSize.x, selSize.y, selSize.z, mode);
+    let blockCount = 0;
+    addHistoryEntry(player.name);
+    for (let i = 0; i < selSize.x; i++) {
+        for (let j = 0; j < selSize.y; j++) {
+            for (let k = 0; k < selSize.z; k++) {
+                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
+                if (mat[i][j][k].valueOf() == true) {
+                    setBlockAt(player, pos, perm.clone());
+                    blockCount++;
+                }
+            }
+        }
+    }
+    player.sendMessage(`§aSuccessfully generated ellipsoid (${blockCount} blocks)`);
+}
 function help(args, player) {
     if (args.length > 0 && isNaN(parseInt(args[0]))) {
         let found = false;
@@ -532,40 +678,23 @@ function set(args, player) {
         return;
     }
     let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
-    let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId;
-    if (typeId == undefined || BlockTypes.get(typeId) == undefined) {
-        typeId = "minecraft:air";
-    }
-    if (args.length > 0) {
-        typeId = args[0];
-        if (args[0] == 'minecraft:water_bucket') {
-            typeId = 'minecraft:water';
-        }
-        if (args[0] == 'minecraft:lava_bucket') {
-            typeId = 'minecraft:lava';
-        }
-        if (args[0] == 'minecraft:powder_snow_bucket') {
-            typeId = 'minecraft:powder_snow';
-        }
-        if (BlockTypes.get(typeId) == undefined) {
+    let perm = getPermFromHand(player);
+    if (args.length > 0 && args[0] != '') {
+        if (BlockPermutation.resolve(args[0]) == undefined) {
+            tellError(player, `Block ${args[0]} not found`);
             return;
         }
+        perm = BlockPermutation.resolve(args[0]);
     }
-    let perm = BlockPermutation.resolve(typeId);
     addHistoryEntry(player.name);
     for (let x = 0; x < selSize.x; x++) {
         for (let y = 0; y < selSize.y; y++) {
             for (let z = 0; z < selSize.z; z++) {
-                addToHistoryEntry(player.name, {
-                    pos: addVector3({ x: x, y: y, z: z }, minVector3(pos1Map.get(player.name), pos2Map.get(player.name))),
-                    pre: player.dimension.getBlock(addVector3({ x: x, y: y, z: z }, minVector3(pos1Map.get(player.name), pos2Map.get(player.name)))).permutation.clone(),
-                    post: perm.clone()
-                });
-                player.dimension.getBlock(addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z })).setPermutation(perm.clone());
+                setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm.clone());
             }
         }
     }
-    player.sendMessage(`§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${typeId}`);
+    player.sendMessage(`§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${perm.type.id}`);
 }
 function remove(args, player) {
     set(["minecraft:air"], player);
@@ -596,12 +725,15 @@ function pos1(args, player, pos = null) {
             pos = floorVector3(player.location);
             if (args[1][0] != "~") {
                 pos.x = 0;
+                args[1] = ' ' + args[1];
             }
             if (args[2][0] != "~") {
                 pos.y = 0;
+                args[2] = ' ' + args[2];
             }
             if (args[3][0] != "~") {
                 pos.z = 0;
+                args[3] = ' ' + args[3];
             }
             if (args[1].length > 1) {
                 pos.x += parseInt(args[1].substring(1));
@@ -650,7 +782,7 @@ function pos1(args, player, pos = null) {
             break;
         }
     }
-    if (!compareVector3(pos, pos1Map.get(player.name))) {
+    if (pos1Map.has(player.name) || !compareVector3(pos, pos1Map.get(player.name))) {
         pos1Map.set(player.name, pos);
         player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
     }
@@ -665,12 +797,15 @@ function pos2(args, player, pos = null) {
             pos = floorVector3(player.location);
             if (args[1][0] != "~") {
                 pos.x = 0;
+                args[1] = ' ' + args[1];
             }
             if (args[2][0] != "~") {
                 pos.y = 0;
+                args[2] = ' ' + args[2];
             }
             if (args[3][0] != "~") {
                 pos.z = 0;
+                args[3] = ' ' + args[3];
             }
             if (args[1].length > 1) {
                 pos.x += parseInt(args[1].substring(1));
@@ -719,7 +854,7 @@ function pos2(args, player, pos = null) {
             break;
         }
     }
-    if (!compareVector3(pos, pos2Map.get(player.name))) {
+    if (pos2Map.has(player.name) || !compareVector3(pos, pos2Map.get(player.name))) {
         pos2Map.set(player.name, pos);
         player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
     }

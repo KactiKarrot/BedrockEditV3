@@ -1,212 +1,44 @@
-import { GeneratorInterface2D } from "./GeneratorInterface2D";
-import { SvgRenderer } from "./Renderers/SvgRenderer";
-import { RendererInterface } from "./Renderers/RendererInterface";
-import { Circle, CircleModes } from "./Circle";
-import { StateHandler, StateItem } from "./State";
+import { Ellipse } from "./Circle";
+import { Ellipsoid } from "./Sphere";
 
-export class Controller {
-	circle: Circle;
-
-	constructor(width: number, height: number, mode: CircleModes) {
-
-	}
+export enum ShapeModes {
+	thick = 'thick',
+	thin = 'thin',
+	filled = 'filled',
 }
 
-export interface Control<T extends HTMLElement = HTMLElement> {
-	element: T;
-	label: string | null;
-	group: string;
-}
+export function generateEllipse(width: number, height: number, mode: ShapeModes): boolean[][] {
+	let ellipse = new Ellipse(mode, width, height);
 
-export interface ControlAwareInterface {
-	getControls(): Control[];
-}
-
-export function isControlAwareInterface(o: any): o is ControlAwareInterface {
-	return o && (typeof o.getControls === "function");
-}
-
-export class InfoControl implements Control<HTMLOutputElement> {
-	public element: HTMLOutputElement = document.createElement("output");
-
-	constructor(public group: string, public label: string | null) { }
-
-	public setValue(value: string) {
-		this.element.value = value;
-	}
-}
-
-export function makeButtonControl(
-	group: string,
-	label: string | null,
-	text: string,
-	onClick: (e: MouseEvent) => void
-): Control<HTMLButtonElement> {
-	const button = document.createElement("button");
-	button.innerText = text;
-
-	button.addEventListener("click", onClick);
-
-	return {
-		element: button,
-		label,
-		group,
-	};
-}
-
-export function makeInputControl(
-	group: string,
-	label: string | null,
-	type: string,
-	value: string | number,
-	onAlter: (val: string) => void,
-	attributes?: Partial<HTMLInputElement>
-): Control<HTMLInputElement> {
-	const controlElm = document.createElement("input");
-
-	if (attributes) {
-		Object.assign(controlElm, attributes);
-	}
-
-	controlElm.type = type;
-	controlElm.value = `${value}`;
-
-	let timeout: number;
-	const handler = () => {
-		clearTimeout(timeout);
-		timeout = setTimeout(() => {
-			onAlter(controlElm.value);
-		}, 50) as unknown as number; // TODO: TypeScript bug
-	};
-	controlElm.addEventListener("change", handler);
-	controlElm.addEventListener("keyup", handler);
-	controlElm.addEventListener("input", handler);
-
-	return {
-		label,
-		group,
-		element: controlElm,
-	};
-}
-
-export class MainController {
-
-	private stateMananger = new StateHandler();
-
-	private generator: GeneratorInterface2D;
-
-	private renderer: RendererInterface = new SvgRenderer(this.stateMananger.get("svgRenderer", {
-		scale: 544,
-	}));
-
-	constructor(private controls: HTMLElement, private result: HTMLElement) {
-		let circleState = this.stateMananger.get("circle", {
-			mode: CircleModes.thick,
-			width: 5,
-			height: 5,
-			force: true,
-		});
-
-		const w = circleState.get('width');
-		const h = circleState.get('height');
-
-		this.generator = new Circle(circleState, w, h);
-		this.generator.changeEmitter.add(() => { this.render(); });
-		this.renderer.changeEmitter.add(() => { this.render(); });
-
-		if (w * h > 200 * 200) {
-			// @todo make it's own class/control
-			const dlg = document.createElement('dialog');
-			dlg.innerText = `Do you want to re-render the saved ${w} x ${h} shape? This may take a while or freeze.`;
-
-			const frm = document.createElement('form');
-			frm.method = 'dialog';
-
-			const btnYes = document.createElement('button');
-			btnYes.value = 'yes';
-			btnYes.innerText = 'Yes';
-
-			const btnNo = document.createElement('button');
-			btnNo.innerText = 'No';
-			btnNo.value = 'no';
-
-			frm.appendChild(btnYes);
-			frm.appendChild(btnNo);
-			frm.style.padding = '1em';
-			frm.style.display = 'flex';
-			frm.style.columnGap = '1em';
-
-			dlg.appendChild(frm);
-
-			dlg.addEventListener("close", () => {
-				if (dlg.returnValue === "yes") {
-					this.renderControls();
-					this.render();
-				} else {
-					circleState.set('width', 5);
-					circleState.set('height', 5);
-					window.location.reload();
-				}
-			});
-
-			result.appendChild(dlg);
-			dlg.showModal();
-			return;
-		}
-
-		this.renderControls();
-		this.render();
-
-
-	}
-
-	private renderControls() {
-		this.controls.innerHTML = '';
-
-		const controlProviders = [this.generator, this.renderer];
-
-		const controlGroups: { [key: string]: Control[] } = {};
-
-		for (const controlProvider of controlProviders) {
-			if (isControlAwareInterface(controlProvider)) {
-				for (const c of controlProvider.getControls()) {
-					if (!controlGroups[c.group]) {
-						controlGroups[c.group] = [];
-					}
-
-					controlGroups[c.group].push(c);
-				}
-			}
-		}
-
-		for (const group in controlGroups) {
-			if (!controlGroups.hasOwnProperty(group)) {
-				continue;
-			}
-
-			const groupElm = document.createElement("fieldset");
-			const legend = document.createElement("legend");
-			legend.innerText = group;
-			groupElm.appendChild(legend);
-
-			for (const c of controlGroups[group]) {
-
-				const labelElm = document.createElement("label");
-				groupElm.appendChild(labelElm);
-
-				if (c.label) {
-					labelElm.innerText = c.label;
-				}
-
-				labelElm.appendChild(c.element);
-			}
-
-			this.controls.appendChild(groupElm);
+	let mat = Array(width).fill(null).map(
+		() => Array(height).fill(null)
+	);
+	
+	for (let x = 0; x < mat.length; x++) {
+		for (let y = 0; y < mat[x].length; y++) {
+			mat[x][y] = ellipse.isFilled(x, y);
 		}
 	}
 
-	private render() {
-		this.renderer.render(this.result, this.generator);
+	return mat
+}
+
+export function generateEllipsoid(width: number, height: number, depth: number, mode: ShapeModes): boolean[][][] {
+	let ellipsoid = new Ellipsoid(mode, width, height, depth);
+
+	let mat = Array(width).fill(null).map(
+		() => Array(height).fill(null).map(
+			() => Array(depth).fill(null)
+		)
+	);
+	
+	for (let x = 0; x < mat.length; x++) {
+		for (let y = 0; y < mat[x].length; y++) {
+			for (let z = 0; z < mat[x][y].length; z++) {
+				mat[x][y][z] = ellipsoid.isFilled(x, y, z);
+			}
+		}
 	}
 
+	return mat
 }

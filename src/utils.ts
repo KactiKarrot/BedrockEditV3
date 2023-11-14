@@ -1,9 +1,36 @@
-import {Player, Vector3, BlockPermutation, Direction} from "@minecraft/server"
+import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent} from "@minecraft/server"
 import { historyMap, clipMap, HistoryEntry, historyIndexMap } from "main"
 
 
 export function tellError(player: Player, msg) {
     player.sendMessage(`§cError: ${msg}`)
+}
+
+export function getPermFromHand(player: Player): BlockPermutation {
+    let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId;
+    if (typeId == 'minecraft:water_bucket') {
+        typeId = 'minecraft:water';
+    }
+    if (typeId == 'minecraft:lava_bucket') {
+        typeId = 'minecraft:lava';
+    }
+    if (typeId == 'minecraft:powder_snow_bucket') {
+        typeId = 'minecraft:powder_snow';
+    }
+    if (typeId == undefined || BlockTypes.get(typeId) == undefined) {
+        typeId = "minecraft:air";
+    }
+    
+    return BlockPermutation.resolve(typeId);
+}
+
+export function setBlockAt(player: Player, pos: Vector3, perm: BlockPermutation) {
+    addToHistoryEntry(player.name, {
+        pos: pos,
+        pre: player.dimension.getBlock(pos).permutation.clone(),
+        post: perm.clone()
+    });
+    player.dimension.getBlock(pos).setPermutation(perm);
 }
 
 // WILL NOT ROTATE GLOW LICHEN OR SCULK VEIN
