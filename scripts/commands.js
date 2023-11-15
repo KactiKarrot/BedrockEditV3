@@ -17,6 +17,100 @@ let commands = [
         ]
     },
     {
+        name: "version",
+        alias: "ver",
+        function: version,
+        description: "Prints the current version",
+        extDescription: "Prints the current version",
+        usage: [
+            ""
+        ]
+    },
+    {
+        name: "welcome",
+        alias: "",
+        function: welcome,
+        description: "Toggles the welcome message shown to all players on join",
+        extDescription: "Toggles the welcome message shown to all players on join",
+        usage: [
+            ""
+        ]
+    },
+    {
+        name: "wand",
+        alias: "",
+        function: wand,
+        description: "Sets or gives the wand item",
+        extDescription: "Sets or gives the wand item\nitemName: Name of the item to set as the wand. If not given the player is given the current wand item.",
+        usage: [
+            "[itemName: Item]"
+        ]
+    },
+    {
+        name: "toggleeditwand",
+        alias: "togglewand",
+        function: toggleWand,
+        description: "Toggles whether use of the edit wand is enabled",
+        extDescription: "Toggles whether use of the edit wand is enabled",
+        usage: [
+            ""
+        ]
+    },
+    {
+        name: "undo",
+        alias: "",
+        function: undo,
+        description: "Undoes an action",
+        extDescription: "Undoes an action",
+        usage: [
+            ""
+        ]
+    },
+    {
+        name: "redo",
+        alias: "",
+        function: redo,
+        description: "Redoes an action",
+        extDescription: "Redoes an action",
+        usage: [
+            ""
+        ]
+    },
+    {
+        name: "clearhistory",
+        alias: "clear",
+        function: clearHistory,
+        description: "Clears the players edit history",
+        extDescription: "Clears the players edit history",
+        usage: [
+            ""
+        ]
+    },
+    {
+        name: "pos1",
+        alias: "p1",
+        function: pos1,
+        description: "Saves a position to pos1",
+        extDescription: "Saves a position to pos1\nfacing: Gets block from player's view vector\n-l: Includes liquid blocks (such as water) in the position selection (normally passes through)\n-p: Includes passable blocks (such as vines) in the position selection (normally passes through)\nposition: Gets block from given coordinates",
+        usage: [
+            "",
+            "facing [-lp]",
+            "position <pos: x y z>"
+        ]
+    },
+    {
+        name: "pos2",
+        alias: "p2",
+        function: pos2,
+        description: "Saves a position to pos2",
+        extDescription: "Saves a position to pos2\nfacing: Gets block from player's view vector\n-l: Includes liquid blocks (such as water) in the position selection (normally passes through)\n-p: Includes passable blocks (such as vines) in the position selection (normally passes through)\nposition: Gets block from given coordinates",
+        usage: [
+            "",
+            "facing [-lp]",
+            "position <pos: x y z>"
+        ]
+    },
+    {
         name: "copy",
         alias: "cp",
         function: copy,
@@ -47,27 +141,23 @@ let commands = [
         ]
     },
     {
-        name: "pos1",
-        alias: "p1",
-        function: pos1,
-        description: "Saves a position to pos1",
-        extDescription: "Saves a position to pos1\nfacing: Gets block from player's view vector\n-l: Includes liquid blocks (such as water) in the position selection (normally passes through)\n-p: Includes passable blocks (such as vines) in the position selection (normally passes through)\nposition: Gets block from given coordinates",
+        name: "rotate",
+        alias: "",
+        function: rotate,
+        description: "Rotates the clipboard",
+        extDescription: "Rotates the clipboard\nangle: Angle to rotate clipboard (must be 90, 180, or 270)",
         usage: [
-            "",
-            "facing [-lp]",
-            "position <pos: x y z>"
+            "<rotationAngle: angle>"
         ]
     },
     {
-        name: "pos2",
-        alias: "p2",
-        function: pos2,
-        description: "Saves a position to pos2",
-        extDescription: "Saves a position to pos2\nfacing: Gets block from player's view vector\n-l: Includes liquid blocks (such as water) in the position selection (normally passes through)\n-p: Includes passable blocks (such as vines) in the position selection (normally passes through)\nposition: Gets block from given coordinates",
+        name: "mirror",
+        alias: "flip",
+        function: mirror,
+        description: "Mirrors the clipboard",
+        extDescription: "Mirrors the clipboard\naxis: Axis to mirror clipboard over",
         usage: [
-            "",
-            "facing [-lp]",
-            "position <pos: x y z>"
+            "<mirrorAxis: x | z>"
         ]
     },
     {
@@ -86,26 +176,6 @@ let commands = [
         function: remove,
         description: "Removes a selection",
         extDescription: "Removes a selection",
-        usage: [
-            ""
-        ]
-    },
-    {
-        name: "undo",
-        alias: "",
-        function: undo,
-        description: "Undoes an action",
-        extDescription: "Undoes an action",
-        usage: [
-            ""
-        ]
-    },
-    {
-        name: "redo",
-        alias: "",
-        function: redo,
-        description: "Redoes an action",
-        extDescription: "Redoes an action",
         usage: [
             ""
         ]
@@ -131,53 +201,23 @@ let commands = [
         ]
     },
     {
-        name: "rotate",
+        name: "cube",
+        alias: "box",
+        function: cube,
+        description: "Generates a cube",
+        extDescription: "Generates a cube between Position 1 and Position 2",
+        usage: [
+            "[mode: hollow | filled] [tileName: Block]"
+        ]
+    },
+    {
+        name: "walls",
         alias: "",
-        function: rotate,
-        description: "Rotates the clipboard",
-        extDescription: "Rotates the clipboard\nangle: Angle to rotate clipboard (must be 90, 180, or 270)",
+        function: walls,
+        description: "Generates four wall",
+        extDescription: "Generates four walls between Position 1 and Position 2",
         usage: [
-            "<rotationAngle: angle>"
-        ]
-    },
-    {
-        name: "mirror",
-        alias: "flip",
-        function: mirror,
-        description: "Mirrors the clipboard",
-        extDescription: "Mirrors the clipboard\naxis: Axis to mirror clipboard over",
-        usage: [
-            "<mirrorAxis: x | z>"
-        ]
-    },
-    {
-        name: "wand",
-        alias: "",
-        function: wand,
-        description: "Sets or gives the wand item",
-        extDescription: "Sets or gives the wand item\nitemName: Name of the item to set as the wand. If not given the player is given the current wand item.",
-        usage: [
-            "[itemName: Item]"
-        ]
-    },
-    {
-        name: "welcome",
-        alias: "",
-        function: welcome,
-        description: "Toggles the welcome message shown to all players on join",
-        extDescription: "Toggles the welcome message shown to all players on join",
-        usage: [
-            ""
-        ]
-    },
-    {
-        name: "version",
-        alias: "ver",
-        function: version,
-        description: "Prints the current version",
-        extDescription: "Prints the current version",
-        usage: [
-            ""
+            "[tileName: Block]"
         ]
     },
     {
@@ -200,258 +240,7 @@ let commands = [
             "[border: thick | thin | filled] [tileName: Block]"
         ]
     },
-    {
-        name: "cube",
-        alias: "box",
-        function: cube,
-        description: "Generates a cube",
-        extDescription: "Generates a cube between Position 1 and Position 2",
-        usage: [
-            "[mode: hollow | filled] [tileName: Block]"
-        ]
-    },
-    {
-        name: "walls",
-        alias: "",
-        function: walls,
-        description: "Generates four wall",
-        extDescription: "Generates four walls between Position 1 and Position 2",
-        usage: [
-            "[tileName: Block]"
-        ]
-    },
-    {
-        name: "toggleeditwand",
-        alias: "togglewand",
-        function: toggleWand,
-        description: "Toggles whether use of the edit wand is enabled",
-        extDescription: "Toggles whether use of the edit wand is enabled",
-        usage: [
-            ""
-        ]
-    },
-    {
-        name: "clearhistory",
-        alias: "clear",
-        function: clearHistory,
-        description: "Clears the players edit history",
-        extDescription: "Clears the players edit history",
-        usage: [
-            ""
-        ]
-    },
 ];
-function clearHistory(args, player) {
-    historyMap.delete(player.name);
-    historyIndexMap.delete(player.name);
-    player.sendMessage(`§aEdit history cleared`);
-}
-function toggleWand(args, player) {
-    setWandEnabled();
-    if (wandEnabled) {
-        player.sendMessage('§aEdit wand enabled');
-    }
-    else {
-        player.sendMessage('§aEdit wand disabled');
-    }
-}
-function cylinder(args, player) {
-    let direction = 'ud';
-    let mode = 'filled';
-    let perm = getPermFromHand(player);
-    if (args.length >= 1) {
-        if (args[0].toLowerCase() != 'ud' && args[0].toLowerCase() != 'ns' && args[0].toLowerCase() != 'ew') {
-            tellError(player, `Invalid direction: ${args[0]}`);
-            return;
-        }
-        direction = args[0].toLowerCase();
-    }
-    if (args.length >= 2) {
-        if (args[1].toLowerCase() != 'thick' && args[1].toLowerCase() != 'thin' && args[1].toLowerCase() != 'filled') {
-            tellError(player, `Invalid border: ${args[1]}`);
-            return;
-        }
-        mode = args[1].toLowerCase();
-    }
-    if (args.length >= 3 && args[2] != '') {
-        if (BlockTypes.get(args[2]) == undefined) {
-            tellError(player, `Block ${args[2]} not found`);
-            return;
-        }
-        perm = BlockPermutation.resolve(args[2]);
-    }
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
-        tellError(player, "Position 1 not set!");
-        return;
-    }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
-        tellError(player, "Position 2 not set!");
-        return;
-    }
-    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
-    let mat;
-    switch (direction) {
-        case 'ud': {
-            mat = generateEllipse(selSize.x, selSize.z, mode);
-            break;
-        }
-        case 'ns': {
-            mat = generateEllipse(selSize.x, selSize.y, mode);
-            break;
-        }
-        case 'ew': {
-            mat = generateEllipse(selSize.z, selSize.y, mode);
-            break;
-        }
-    }
-    let blockCount = 0;
-    addHistoryEntry(player.name);
-    for (let i = 0; i < selSize.x; i++) {
-        for (let j = 0; j < selSize.y; j++) {
-            for (let k = 0; k < selSize.z; k++) {
-                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
-                switch (direction) {
-                    case 'ud': {
-                        if (mat[i][k].valueOf() == true) {
-                            setBlockAt(player, pos, perm.clone());
-                            blockCount++;
-                        }
-                        break;
-                    }
-                    case 'ns': {
-                        if (mat[i][j].valueOf() == true) {
-                            setBlockAt(player, pos, perm.clone());
-                            blockCount++;
-                        }
-                        break;
-                    }
-                    case 'ew': {
-                        if (mat[k][j].valueOf() == true) {
-                            setBlockAt(player, pos, perm.clone());
-                            blockCount++;
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    player.sendMessage(`§aSuccessfully generated cylinder (${blockCount} blocks)`);
-}
-function ellipsoid(args, player) {
-    let mode = 'filled';
-    let perm = getPermFromHand(player);
-    if (args.length >= 1) {
-        if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
-            tellError(player, `Invalid border: ${args[1]}`);
-            return;
-        }
-        mode = args[0].toLowerCase();
-    }
-    if (args.length >= 2 && args[1] != '') {
-        if (BlockTypes.get(args[1]) == undefined) {
-            tellError(player, `Block ${args[1]} not found`);
-            return;
-        }
-        perm = BlockPermutation.resolve(args[1]);
-    }
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
-        tellError(player, "Position 1 not set!");
-        return;
-    }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
-        tellError(player, "Position 2 not set!");
-        return;
-    }
-    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
-    let mat = generateEllipsoid(selSize.x, selSize.y, selSize.z, mode);
-    let blockCount = 0;
-    addHistoryEntry(player.name);
-    for (let i = 0; i < selSize.x; i++) {
-        for (let j = 0; j < selSize.y; j++) {
-            for (let k = 0; k < selSize.z; k++) {
-                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
-                if (mat[i][j][k].valueOf() == true) {
-                    setBlockAt(player, pos, perm.clone());
-                    blockCount++;
-                }
-            }
-        }
-    }
-    player.sendMessage(`§aSuccessfully generated ellipsoid (${blockCount} blocks)`);
-}
-function cube(args, player) {
-    let mode = 'filled';
-    let perm = getPermFromHand(player);
-    if (args.length >= 1) {
-        if (args[0].toLowerCase() != 'hollow' && args[0].toLowerCase() != 'filled') {
-            tellError(player, `Invalid mode: ${args[1]}`);
-            return;
-        }
-        mode = args[0].toLowerCase();
-    }
-    if (args.length >= 2 && args[1] != '') {
-        if (BlockTypes.get(args[1]) == undefined) {
-            tellError(player, `Block ${args[1]} not found`);
-            return;
-        }
-        perm = BlockPermutation.resolve(args[1]);
-    }
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
-        tellError(player, "Position 1 not set!");
-        return;
-    }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
-        tellError(player, "Position 2 not set!");
-        return;
-    }
-    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
-    let blockCount = 0;
-    addHistoryEntry(player.name);
-    for (let x = 0; x < selSize.x; x++) {
-        for (let y = 0; y < selSize.y; y++) {
-            for (let z = 0; z < selSize.z; z++) {
-                if (mode == 'filled' || (x == 0 || x == selSize.x - 1) || (y == 0 || y == selSize.y - 1) || (z == 0 || z == selSize.z - 1)) {
-                    setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm);
-                    blockCount++;
-                }
-            }
-        }
-    }
-    player.sendMessage(`§aSuccessfully generated cube (${blockCount} blocks)`);
-}
-function walls(args, player) {
-    let perm = getPermFromHand(player);
-    if (args.length >= 1 && args[0] != '') {
-        if (BlockTypes.get(args[0]) == undefined) {
-            tellError(player, `Block ${args[1]} not found`);
-            return;
-        }
-        perm = BlockPermutation.resolve(args[0]);
-    }
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
-        tellError(player, "Position 1 not set!");
-        return;
-    }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
-        tellError(player, "Position 2 not set!");
-        return;
-    }
-    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
-    let blockCount = 0;
-    addHistoryEntry(player.name);
-    for (let x = 0; x < selSize.x; x++) {
-        for (let y = 0; y < selSize.y; y++) {
-            for (let z = 0; z < selSize.z; z++) {
-                if ((x == 0 || x == selSize.x - 1) || (z == 0 || z == selSize.z - 1)) {
-                    setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm);
-                    blockCount++;
-                }
-            }
-        }
-    }
-    player.sendMessage(`§aSuccessfully generated walls (${blockCount} blocks)`);
-}
 function help(args, player) {
     if (args.length > 0 && isNaN(parseInt(args[0]))) {
         let found = false;
@@ -498,6 +287,9 @@ function help(args, player) {
     // player.sendMessage(`§7- ${PREFIX}help: §bLists all commands and what they do\n§7- ${PREFIX}copy: §bCopies a region to the player's clipboard\n§7- ${PREFIX}cut: §bCuts a region to the player's clipboard\n§7- ${PREFIX}paste: §bPastes a region from the player's clipboard\n§7- ${PREFIX}pos1: §bSaves your current position to pos1\n§7- ${PREFIX}pos2: §bSaves your current position to pos2`)
     player.sendMessage(msg);
 }
+function version(args, player) {
+    player.sendMessage(`<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`);
+}
 function welcome(args, player) {
     setWelcome();
     if (welcomeMessage) {
@@ -507,8 +299,31 @@ function welcome(args, player) {
         player.sendMessage('§aWelcome message disabled');
     }
 }
-function version(args, player) {
-    player.sendMessage(`<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`);
+function wand(args, player) {
+    if (args.length < 1) {
+        player.getComponent('minecraft:inventory').container.addItem(currentWand.clone());
+        player.sendMessage(`You have been given ${WAND_NAME}`);
+        return;
+    }
+    let itemType = ItemTypes.get(args[0]);
+    if (itemType == undefined) {
+        tellError(player, `Item ${args[0]} not found`);
+        return;
+    }
+    // scoreboard.removeParticipant('wand.' + currentWand.typeId);
+    // scoreboard.setScore("wand." + itemType.id, 0);
+    world.setDynamicProperty('wand', itemType.id);
+    setWand();
+    player.sendMessage(`§aSet wand item to ${currentWand.typeId}`);
+}
+function toggleWand(args, player) {
+    setWandEnabled();
+    if (wandEnabled) {
+        player.sendMessage('§aEdit wand enabled');
+    }
+    else {
+        player.sendMessage('§aEdit wand disabled');
+    }
 }
 function undo(args, player) {
     if (historyMap.get(player.name) == undefined || historyMap.get(player.name).length <= 0) {
@@ -541,6 +356,222 @@ function redo(args, player) {
         player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].post.clone());
     }
     player.sendMessage(`§aRedid ${entry.length} block changes`);
+}
+function clearHistory(args, player) {
+    historyMap.delete(player.name);
+    historyIndexMap.delete(player.name);
+    player.sendMessage(`§aEdit history cleared`);
+}
+function pos1(args, player, pos = null) {
+    switch (args[0]) {
+        case "position": {
+            if (args.length < 4) {
+                tellError(player, "Not enough arguments");
+                return;
+            }
+            pos = floorVector3(player.location);
+            if (args[1][0] != "~") {
+                pos.x = 0;
+                args[1] = ' ' + args[1];
+            }
+            if (args[2][0] != "~") {
+                pos.y = 0;
+                args[2] = ' ' + args[2];
+            }
+            if (args[3][0] != "~") {
+                pos.z = 0;
+                args[3] = ' ' + args[3];
+            }
+            if (args[1].length > 1) {
+                if (isNaN(parseInt(args[1].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[1]}`);
+                    return;
+                }
+                pos.x += parseInt(args[1].substring(1));
+            }
+            if (args[2].length > 1) {
+                if (isNaN(parseInt(args[2].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[2]}`);
+                    return;
+                }
+                pos.y += parseInt(args[2].substring(1));
+            }
+            if (args[3].length > 1) {
+                if (isNaN(parseInt(args[3].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[3]}`);
+                    return;
+                }
+                pos.z += parseInt(args[3].substring(1));
+            }
+            break;
+        }
+        case "facing": {
+            let options = {
+                includeLiquidBlocks: false,
+                includePassableBlocks: false,
+                maxDistance: 15
+            };
+            if (args.length > 1 && args[1].charAt(0) == '-') {
+                args[1] = args[1].substring(1);
+                for (let i = 0; i < args[1].length; i++) {
+                    switch (args[1].charAt(i)) {
+                        case 'l': {
+                            options.includeLiquidBlocks = true;
+                            break;
+                        }
+                        case 'p': {
+                            options.includePassableBlocks = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            let rayHit = player.getBlockFromViewDirection(options);
+            if (rayHit != undefined) {
+                pos = rayHit.block.location;
+            }
+            else {
+                tellError(player, 'No block in range');
+                return;
+            }
+            break;
+        }
+        default: {
+            pos = floorVector3(player.location);
+            break;
+        }
+    }
+    if (!pos1Map.has(player.name) || !compareVector3(pos, pos1Map.get(player.name))) {
+        pos1Map.set(player.name, pos);
+        if (pos2Map.has(player.name)) {
+            let diff = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos, pos2Map.get(player.name)));
+            player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
+        }
+        else {
+            player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        }
+    }
+}
+function pos2(args, player, pos = null) {
+    switch (args[0]) {
+        case "position": {
+            if (args.length < 4) {
+                tellError(player, "Not enough arguments");
+                return;
+            }
+            pos = floorVector3(player.location);
+            if (args[1][0] != "~") {
+                pos.x = 0;
+                args[1] = ' ' + args[1];
+            }
+            if (args[2][0] != "~") {
+                pos.y = 0;
+                args[2] = ' ' + args[2];
+            }
+            if (args[3][0] != "~") {
+                pos.z = 0;
+                args[3] = ' ' + args[3];
+            }
+            if (args[1].length > 1) {
+                if (isNaN(parseInt(args[1].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[1]}`);
+                    return;
+                }
+                pos.x += parseInt(args[1].substring(1));
+            }
+            if (args[2].length > 1) {
+                if (isNaN(parseInt(args[2].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[2]}`);
+                    return;
+                }
+                pos.y += parseInt(args[2].substring(1));
+            }
+            if (args[3].length > 1) {
+                if (isNaN(parseInt(args[3].substring(1)))) {
+                    tellError(player, `Invalid number: ${args[3]}`);
+                    return;
+                }
+                pos.z += parseInt(args[3].substring(1));
+            }
+            break;
+        }
+        case "facing": {
+            let options = {
+                includeLiquidBlocks: false,
+                includePassableBlocks: false,
+                maxDistance: 15
+            };
+            if (args.length > 1 && args[1].charAt(0) == '-') {
+                args[1] = args[1].substring(1);
+                for (let i = 0; i < args[1].length; i++) {
+                    switch (args[1].charAt(i)) {
+                        case 'l': {
+                            options.includeLiquidBlocks = true;
+                            break;
+                        }
+                        case 'p': {
+                            options.includePassableBlocks = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            let rayHit = player.getBlockFromViewDirection(options);
+            if (rayHit != undefined) {
+                pos = rayHit.block.location;
+            }
+            else {
+                tellError(player, 'No block in range');
+                return;
+            }
+            break;
+        }
+        default: {
+            pos = floorVector3(player.location);
+            break;
+        }
+    }
+    if (!pos2Map.has(player.name) || !compareVector3(pos, pos2Map.get(player.name))) {
+        pos2Map.set(player.name, pos);
+        if (pos1Map.has(player.name)) {
+            let diff = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos, pos1Map.get(player.name)));
+            player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
+        }
+        else {
+            player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        }
+    }
+}
+function set(args, player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    let perm = getPermFromHand(player);
+    if (args.length > 0 && args[0] != '') {
+        if (BlockPermutation.resolve(args[0]) == undefined) {
+            tellError(player, `Block ${args[0]} not found`);
+            return;
+        }
+        perm = BlockPermutation.resolve(args[0]);
+    }
+    addHistoryEntry(player.name);
+    for (let x = 0; x < selSize.x; x++) {
+        for (let y = 0; y < selSize.y; y++) {
+            for (let z = 0; z < selSize.z; z++) {
+                setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm.clone());
+            }
+        }
+    }
+    player.sendMessage(`§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${perm.type.id}`);
+}
+function remove(args, player) {
+    set(["minecraft:air"], player);
 }
 function move(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -794,7 +825,23 @@ function stack(args, player) {
     }
     player.sendMessage(`Stacked selection ${amount} times`);
 }
-function set(args, player) {
+function cube(args, player) {
+    let mode = 'filled';
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'hollow' && args[0].toLowerCase() != 'filled') {
+            tellError(player, `Invalid mode: ${args[1]}`);
+            return;
+        }
+        mode = args[0].toLowerCase();
+    }
+    if (args.length >= 2 && args[1] != '') {
+        if (BlockTypes.get(args[1]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`);
+            return;
+        }
+        perm = BlockPermutation.resolve(args[1]);
+    }
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -804,222 +851,175 @@ function set(args, player) {
         return;
     }
     let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
-    let perm = getPermFromHand(player);
-    if (args.length > 0 && args[0] != '') {
-        if (BlockPermutation.resolve(args[0]) == undefined) {
-            tellError(player, `Block ${args[0]} not found`);
-            return;
-        }
-        perm = BlockPermutation.resolve(args[0]);
-    }
+    let blockCount = 0;
     addHistoryEntry(player.name);
     for (let x = 0; x < selSize.x; x++) {
         for (let y = 0; y < selSize.y; y++) {
             for (let z = 0; z < selSize.z; z++) {
-                setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm.clone());
+                if (mode == 'filled' || (x == 0 || x == selSize.x - 1) || (y == 0 || y == selSize.y - 1) || (z == 0 || z == selSize.z - 1)) {
+                    setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm);
+                    blockCount++;
+                }
             }
         }
     }
-    player.sendMessage(`§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${perm.type.id}`);
+    player.sendMessage(`§aSuccessfully generated cube (${blockCount} blocks)`);
 }
-function remove(args, player) {
-    set(["minecraft:air"], player);
-}
-function wand(args, player) {
-    if (args.length < 1) {
-        player.getComponent('minecraft:inventory').container.addItem(currentWand.clone());
-        player.sendMessage(`You have been given ${WAND_NAME}`);
+function walls(args, player) {
+    let perm = getPermFromHand(player);
+    if (args.length >= 1 && args[0] != '') {
+        if (BlockTypes.get(args[0]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`);
+            return;
+        }
+        perm = BlockPermutation.resolve(args[0]);
+    }
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
         return;
     }
-    let itemType = ItemTypes.get(args[0]);
-    if (itemType == undefined) {
-        tellError(player, `Item ${args[0]} not found`);
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
         return;
     }
-    // scoreboard.removeParticipant('wand.' + currentWand.typeId);
-    // scoreboard.setScore("wand." + itemType.id, 0);
-    world.setDynamicProperty('wand', itemType.id);
-    setWand();
-    player.sendMessage(`§aSet wand item to ${currentWand.typeId}`);
+    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    let blockCount = 0;
+    addHistoryEntry(player.name);
+    for (let x = 0; x < selSize.x; x++) {
+        for (let y = 0; y < selSize.y; y++) {
+            for (let z = 0; z < selSize.z; z++) {
+                if ((x == 0 || x == selSize.x - 1) || (z == 0 || z == selSize.z - 1)) {
+                    setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm);
+                    blockCount++;
+                }
+            }
+        }
+    }
+    player.sendMessage(`§aSuccessfully generated walls (${blockCount} blocks)`);
 }
-function pos1(args, player, pos = null) {
-    switch (args[0]) {
-        case "position": {
-            if (args.length < 4) {
-                tellError(player, "Not enough arguments");
-                return;
-            }
-            pos = floorVector3(player.location);
-            if (args[1][0] != "~") {
-                pos.x = 0;
-                args[1] = ' ' + args[1];
-            }
-            if (args[2][0] != "~") {
-                pos.y = 0;
-                args[2] = ' ' + args[2];
-            }
-            if (args[3][0] != "~") {
-                pos.z = 0;
-                args[3] = ' ' + args[3];
-            }
-            if (args[1].length > 1) {
-                if (isNaN(parseInt(args[1].substring(1)))) {
-                    tellError(player, `Invalid number: ${args[1]}`);
-                    return;
-                }
-                pos.x += parseInt(args[1].substring(1));
-            }
-            if (args[2].length > 1) {
-                if (isNaN(parseInt(args[2].substring(1)))) {
-                    tellError(player, `Invalid number: ${args[2]}`);
-                    return;
-                }
-                pos.y += parseInt(args[2].substring(1));
-            }
-            if (args[3].length > 1) {
-                if (isNaN(parseInt(args[3].substring(1)))) {
-                    tellError(player, `Invalid number: ${args[3]}`);
-                    return;
-                }
-                pos.z += parseInt(args[3].substring(1));
-            }
+function cylinder(args, player) {
+    let direction = 'ud';
+    let mode = 'filled';
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'ud' && args[0].toLowerCase() != 'ns' && args[0].toLowerCase() != 'ew') {
+            tellError(player, `Invalid direction: ${args[0]}`);
+            return;
+        }
+        direction = args[0].toLowerCase();
+    }
+    if (args.length >= 2) {
+        if (args[1].toLowerCase() != 'thick' && args[1].toLowerCase() != 'thin' && args[1].toLowerCase() != 'filled') {
+            tellError(player, `Invalid border: ${args[1]}`);
+            return;
+        }
+        mode = args[1].toLowerCase();
+    }
+    if (args.length >= 3 && args[2] != '') {
+        if (BlockTypes.get(args[2]) == undefined) {
+            tellError(player, `Block ${args[2]} not found`);
+            return;
+        }
+        perm = BlockPermutation.resolve(args[2]);
+    }
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    let mat;
+    switch (direction) {
+        case 'ud': {
+            mat = generateEllipse(selSize.x, selSize.z, mode);
             break;
         }
-        case "facing": {
-            let options = {
-                includeLiquidBlocks: false,
-                includePassableBlocks: false,
-                maxDistance: 15
-            };
-            if (args.length > 1 && args[1].charAt(0) == '-') {
-                args[1] = args[1].substring(1);
-                for (let i = 0; i < args[1].length; i++) {
-                    switch (args[1].charAt(i)) {
-                        case 'l': {
-                            options.includeLiquidBlocks = true;
-                            break;
+        case 'ns': {
+            mat = generateEllipse(selSize.x, selSize.y, mode);
+            break;
+        }
+        case 'ew': {
+            mat = generateEllipse(selSize.z, selSize.y, mode);
+            break;
+        }
+    }
+    let blockCount = 0;
+    addHistoryEntry(player.name);
+    for (let i = 0; i < selSize.x; i++) {
+        for (let j = 0; j < selSize.y; j++) {
+            for (let k = 0; k < selSize.z; k++) {
+                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
+                switch (direction) {
+                    case 'ud': {
+                        if (mat[i][k].valueOf() == true) {
+                            setBlockAt(player, pos, perm.clone());
+                            blockCount++;
                         }
-                        case 'p': {
-                            options.includePassableBlocks = true;
-                            break;
+                        break;
+                    }
+                    case 'ns': {
+                        if (mat[i][j].valueOf() == true) {
+                            setBlockAt(player, pos, perm.clone());
+                            blockCount++;
                         }
+                        break;
+                    }
+                    case 'ew': {
+                        if (mat[k][j].valueOf() == true) {
+                            setBlockAt(player, pos, perm.clone());
+                            blockCount++;
+                        }
+                        break;
                     }
                 }
             }
-            let rayHit = player.getBlockFromViewDirection(options);
-            if (rayHit != undefined) {
-                pos = rayHit.block.location;
-            }
-            else {
-                tellError(player, 'No block in range');
-                return;
-            }
-            break;
-        }
-        default: {
-            pos = floorVector3(player.location);
-            break;
         }
     }
-    if (!pos1Map.has(player.name) || !compareVector3(pos, pos1Map.get(player.name))) {
-        pos1Map.set(player.name, pos);
-        if (pos2Map.has(player.name)) {
-            let diff = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos, pos2Map.get(player.name)));
-            player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
-        }
-        else {
-            player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
-        }
-    }
+    player.sendMessage(`§aSuccessfully generated cylinder (${blockCount} blocks)`);
 }
-function pos2(args, player, pos = null) {
-    switch (args[0]) {
-        case "position": {
-            if (args.length < 4) {
-                tellError(player, "Not enough arguments");
-                return;
-            }
-            pos = floorVector3(player.location);
-            if (args[1][0] != "~") {
-                pos.x = 0;
-                args[1] = ' ' + args[1];
-            }
-            if (args[2][0] != "~") {
-                pos.y = 0;
-                args[2] = ' ' + args[2];
-            }
-            if (args[3][0] != "~") {
-                pos.z = 0;
-                args[3] = ' ' + args[3];
-            }
-            if (args[1].length > 1) {
-                if (isNaN(parseInt(args[1].substring(1)))) {
-                    tellError(player, `Invalid number: ${args[1]}`);
-                    return;
-                }
-                pos.x += parseInt(args[1].substring(1));
-            }
-            if (args[2].length > 1) {
-                if (isNaN(parseInt(args[2].substring(1)))) {
-                    tellError(player, `Invalid number: ${args[2]}`);
-                    return;
-                }
-                pos.y += parseInt(args[2].substring(1));
-            }
-            if (args[3].length > 1) {
-                if (isNaN(parseInt(args[3].substring(1)))) {
-                    tellError(player, `Invalid number: ${args[3]}`);
-                    return;
-                }
-                pos.z += parseInt(args[3].substring(1));
-            }
-            break;
+function ellipsoid(args, player) {
+    let mode = 'filled';
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
+            tellError(player, `Invalid border: ${args[1]}`);
+            return;
         }
-        case "facing": {
-            let options = {
-                includeLiquidBlocks: false,
-                includePassableBlocks: false,
-                maxDistance: 15
-            };
-            if (args.length > 1 && args[1].charAt(0) == '-') {
-                args[1] = args[1].substring(1);
-                for (let i = 0; i < args[1].length; i++) {
-                    switch (args[1].charAt(i)) {
-                        case 'l': {
-                            options.includeLiquidBlocks = true;
-                            break;
-                        }
-                        case 'p': {
-                            options.includePassableBlocks = true;
-                            break;
-                        }
-                    }
+        mode = args[0].toLowerCase();
+    }
+    if (args.length >= 2 && args[1] != '') {
+        if (BlockTypes.get(args[1]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`);
+            return;
+        }
+        perm = BlockPermutation.resolve(args[1]);
+    }
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    let mat = generateEllipsoid(selSize.x, selSize.y, selSize.z, mode);
+    let blockCount = 0;
+    addHistoryEntry(player.name);
+    for (let i = 0; i < selSize.x; i++) {
+        for (let j = 0; j < selSize.y; j++) {
+            for (let k = 0; k < selSize.z; k++) {
+                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
+                if (mat[i][j][k].valueOf() == true) {
+                    setBlockAt(player, pos, perm.clone());
+                    blockCount++;
                 }
             }
-            let rayHit = player.getBlockFromViewDirection(options);
-            if (rayHit != undefined) {
-                pos = rayHit.block.location;
-            }
-            else {
-                tellError(player, 'No block in range');
-                return;
-            }
-            break;
-        }
-        default: {
-            pos = floorVector3(player.location);
-            break;
         }
     }
-    if (!pos2Map.has(player.name) || !compareVector3(pos, pos2Map.get(player.name))) {
-        pos2Map.set(player.name, pos);
-        if (pos1Map.has(player.name)) {
-            let diff = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos, pos1Map.get(player.name)));
-            player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
-        }
-        else {
-            player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
-        }
-    }
+    player.sendMessage(`§aSuccessfully generated ellipsoid (${blockCount} blocks)`);
 }
 export { commands, pos1, pos2 };
