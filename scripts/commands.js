@@ -4,6 +4,7 @@ import { copy, cut, mirror, paste, rotate } from "clipboard";
 import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setWand, setWandEnabled, setWelcome, wandEnabled, welcomeMessage } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
 let commands = [
+    // help
     {
         name: "help",
         alias: "?",
@@ -16,6 +17,7 @@ let commands = [
             "[command: CommandName]"
         ]
     },
+    // version
     {
         name: "version",
         alias: "ver",
@@ -26,6 +28,7 @@ let commands = [
             ""
         ]
     },
+    // welcome
     {
         name: "welcome",
         alias: "",
@@ -36,6 +39,7 @@ let commands = [
             ""
         ]
     },
+    // wand
     {
         name: "wand",
         alias: "",
@@ -46,6 +50,7 @@ let commands = [
             "[itemName: Item]"
         ]
     },
+    // toggleeditwand
     {
         name: "toggleeditwand",
         alias: "togglewand",
@@ -56,6 +61,7 @@ let commands = [
             ""
         ]
     },
+    // undo
     {
         name: "undo",
         alias: "",
@@ -66,6 +72,7 @@ let commands = [
             ""
         ]
     },
+    // redo
     {
         name: "redo",
         alias: "",
@@ -76,6 +83,7 @@ let commands = [
             ""
         ]
     },
+    // clearhistory
     {
         name: "clearhistory",
         alias: "clear",
@@ -86,6 +94,7 @@ let commands = [
             ""
         ]
     },
+    // pos1
     {
         name: "pos1",
         alias: "p1",
@@ -98,6 +107,7 @@ let commands = [
             "position <pos: x y z>"
         ]
     },
+    // pos2
     {
         name: "pos2",
         alias: "p2",
@@ -110,6 +120,8 @@ let commands = [
             "position <pos: x y z>"
         ]
     },
+    // add deselect here
+    // copy
     {
         name: "copy",
         alias: "cp",
@@ -120,6 +132,7 @@ let commands = [
             ""
         ]
     },
+    // cut
     {
         name: "cut",
         alias: "",
@@ -130,6 +143,7 @@ let commands = [
             ""
         ]
     },
+    // paste
     {
         name: "paste",
         alias: "",
@@ -140,6 +154,7 @@ let commands = [
             "[-a]"
         ]
     },
+    // rotate
     {
         name: "rotate",
         alias: "",
@@ -150,6 +165,7 @@ let commands = [
             "<rotationAngle: angle>"
         ]
     },
+    // mirror
     {
         name: "mirror",
         alias: "flip",
@@ -160,6 +176,7 @@ let commands = [
             "<mirrorAxis: x | z>"
         ]
     },
+    // set
     {
         name: "set",
         alias: "",
@@ -170,6 +187,7 @@ let commands = [
             "[tileName: Block]"
         ]
     },
+    // remove
     {
         name: "remove",
         alias: "rm",
@@ -180,6 +198,7 @@ let commands = [
             ""
         ]
     },
+    // move
     {
         name: "move",
         alias: "mv",
@@ -190,6 +209,7 @@ let commands = [
             "[distance: int] [direction: me|facing|forward|right|backward|left|north|east|south|west|up|down] [-a]"
         ]
     },
+    // stack
     {
         name: "stack",
         alias: "",
@@ -200,6 +220,7 @@ let commands = [
             "[amount: int] [me|facing|forward|right|backward|left|north|east|south|west|up|down] [offset: int] [-a]"
         ]
     },
+    // cube
     {
         name: "cube",
         alias: "box",
@@ -210,6 +231,7 @@ let commands = [
             "[mode: hollow | filled] [tileName: Block]"
         ]
     },
+    // walls
     {
         name: "walls",
         alias: "",
@@ -220,6 +242,7 @@ let commands = [
             "[tileName: Block]"
         ]
     },
+    // cylinder
     {
         name: "cylinder",
         alias: "cyl",
@@ -230,6 +253,7 @@ let commands = [
             "[direction: ud | ns | ew] [border: thick | thin | filled] [tileName: Block]"
         ]
     },
+    // ellipsoid
     {
         name: "ellipsoid",
         alias: "sphere",
