@@ -1,5 +1,5 @@
 import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction, ItemStack, ItemTypes, world } from "@minecraft/server";
-import { ShapeModes, generateEllipse, generateEllipsoid } from "Circle-Generator/Controller";
+import { ShapeModes, generateCone, generateDome, generateEllipse, generateEllipsoid, generatePyramid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
 import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setWand, setWandEnabled, setWelcome, wandEnabled, welcomeMessage } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
@@ -251,7 +251,7 @@ let commands = [
         description: "Generates a cylinder",
         extDescription: "Generates an cylinder between Position 1 and Position 2",
         usage: [
-            "[direction: ud | ns | ew] [border: thick | thin | filled] [tileName: Block]"
+            "[direction: ud | ns | ew] [mode: thick | thin | filled] [tileName: Block]"
         ]
     },
     // ellipsoid
@@ -262,7 +262,40 @@ let commands = [
         description: "Generates an ellipsoid",
         extDescription: "Generates an ellipsoid between Position 1 and Position 2",
         usage: [
-            "[border: thick | thin | filled] [tileName: Block]"
+            "[mode: thick | thin | filled] [tileName: Block]"
+        ]
+    },
+    // dome
+    {
+        name: "dome",
+        alias: "",
+        function: dome,
+        description: "Generates a dome",
+        extDescription: "Generates a dome between Position 1 and Position 2",
+        usage: [
+            "[mode: thick | thin | filled] [tileName: Block]"
+        ]
+    },
+    // pyramid
+    {
+        name: "pyramid",
+        alias: "pyr",
+        function: pyramid,
+        description: "Generates a pyramid (works best with equal x and z dimensions)",
+        extDescription: "Generates a pyramid between Position 1 and Position 2 (works best with equal x and z dimensions)",
+        usage: [
+            "[mode: hollow | filled] [tileName: Block]"
+        ]
+    },
+    // cone
+    {
+        name: "cone",
+        alias: "",
+        function: cone,
+        description: "Generates a cone",
+        extDescription: "Generates a cone between Position 1 and Position 2",
+        usage: [
+            "[mode: thick | thin | filled] [tileName: Block]"
         ]
     },
 ]
@@ -774,7 +807,7 @@ function stack(args, player: Player) {
         return;
     }
 
-    let amount = 1
+    let amount = 2
 
     //#region Args
     if (args.length == 0) {
@@ -782,11 +815,11 @@ function stack(args, player: Player) {
         return;
     }
     if (args.length >= 1) {
-        if (Number.isNaN(parseInt(args[0]))) {
+        if (Number.isNaN(parseInt(args[0])) || args[0] == '0') {
             tellError(player, `Invalid amount: '${args[0]}'`)
             return
         }
-        amount = parseInt(args[0]);
+        amount = parseInt(args[0]) + 1;
     }
     let direction = getPrimaryDirection(player.getViewDirection());
     if (args.length >= 2) {
@@ -1050,7 +1083,7 @@ function cylinder(args, player: Player) {
     }
     if (args.length >= 2) {
         if (args[1].toLowerCase() != 'thick' && args[1].toLowerCase() != 'thin' && args[1].toLowerCase() != 'filled') {
-            tellError(player, `Invalid border: ${args[1]}`)
+            tellError(player, `Invalid mode: ${args[1]}`)
             return
         }
         mode = args[1].toLowerCase();
@@ -1131,7 +1164,7 @@ function ellipsoid(args, player: Player) {
     let perm = getPermFromHand(player);
     if (args.length >= 1) {
         if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
-            tellError(player, `Invalid border: ${args[1]}`)
+            tellError(player, `Invalid mode: ${args[1]}`)
             return
         }
         mode = args[0].toLowerCase();
@@ -1173,6 +1206,151 @@ function ellipsoid(args, player: Player) {
     }
     player.sendMessage(`§aSuccessfully generated ellipsoid (${blockCount} blocks)`);
 }
+
+function dome(args, player: Player) {
+    let mode = 'filled'
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
+            tellError(player, `Invalid mode: ${args[1]}`)
+            return
+        }
+        mode = args[0].toLowerCase();
+    }
+    if (args.length >= 2 && args[1] != '') {
+        if (BlockTypes.get(args[1]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`)
+            return;
+        }
+        perm = BlockPermutation.resolve(args[1]);
+    }
+
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+
+    let mat = generateDome(selSize.x, selSize.y, selSize.z, mode as ShapeModes);
+    
+    let blockCount = 0;
+
+    addHistoryEntry(player.name);
+
+    for (let i = 0; i < selSize.x; i++) {
+        for (let j = 0; j < selSize.y; j++) {
+            for (let k = 0; k < selSize.z; k++) {
+                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), {x: i, y: j, z: k})
+                if (mat[i][j][k].valueOf() == true) {
+                    setBlockAt(player, pos, perm.clone());
+                    blockCount++;
+                }
+            }
+        }
+    }
+    player.sendMessage(`§aSuccessfully generated a dome (${blockCount} blocks)`);
+}
+
+function pyramid(args, player: Player) {
+    let mode = 'filled'
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'hollow' && args[0].toLowerCase() != 'filled') {
+            tellError(player, `Invalid mode: ${args[1]}`)
+            return
+        }
+        mode = args[0].toLowerCase();
+    }
+    if (args.length >= 2 && args[1] != '') {
+        if (BlockTypes.get(args[1]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`)
+            return;
+        }
+        perm = BlockPermutation.resolve(args[1]);
+    }
+
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+
+    let mat = generatePyramid(selSize.x, selSize.y, selSize.z, mode as ShapeModes);
+    
+    let blockCount = 0;
+
+    addHistoryEntry(player.name);
+
+    for (let i = 0; i < selSize.x; i++) {
+        for (let j = 0; j < selSize.y; j++) {
+            for (let k = 0; k < selSize.z; k++) {
+                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), {x: i, y: j, z: k})
+                if (mat[i][j][k].valueOf() == true) {
+                    setBlockAt(player, pos, perm.clone());
+                    blockCount++;
+                }
+            }
+        }
+    }
+    player.sendMessage(`§aSuccessfully generated pyramid (${blockCount} blocks)`);
+}
+
+function cone(args, player: Player) {
+    let mode = 'filled'
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
+            tellError(player, `Invalid mode: ${args[1]}`)
+            return
+        }
+        mode = args[0].toLowerCase();
+    }
+    if (args.length >= 2 && args[1] != '') {
+        if (BlockTypes.get(args[1]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`)
+            return;
+        }
+        perm = BlockPermutation.resolve(args[1]);
+    }
+
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+
+    let mat = generateCone(selSize.x, selSize.y, selSize.z, mode as ShapeModes);
+    
+    let blockCount = 0;
+
+    addHistoryEntry(player.name);
+
+    for (let i = 0; i < selSize.x; i++) {
+        for (let j = 0; j < selSize.y; j++) {
+            for (let k = 0; k < selSize.z; k++) {
+                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), {x: i, y: j, z: k})
+                if (mat[i][j][k].valueOf() == true) {
+                    setBlockAt(player, pos, perm.clone());
+                    blockCount++;
+                }
+            }
+        }
+    }
+    player.sendMessage(`§aSuccessfully generated a cone (${blockCount} blocks)`);
+}
+
 
 export {
     commands,
