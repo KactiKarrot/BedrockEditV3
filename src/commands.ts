@@ -231,7 +231,23 @@ let commands = [
             ""
         ]
     },
+    {
+        name: "clearhistory",
+        alias: "clear",
+        function: clearHistory,
+        description: "Clears the players edit history",
+        extDescription: "Clears the players edit history",
+        usage: [
+            ""
+        ]
+    },
 ]
+
+function clearHistory(args, player: Player) {
+    historyMap.delete(player.name);
+    historyIndexMap.delete(player.name);
+    player.sendMessage(`§aEdit history cleared`)
+}
 
 function toggleWand(args, player: Player) {
     setWandEnabled()
