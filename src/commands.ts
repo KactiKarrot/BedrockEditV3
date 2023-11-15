@@ -1,7 +1,7 @@
 import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction, ItemStack, ItemTypes, world } from "@minecraft/server";
 import { ShapeModes, generateEllipse, generateEllipsoid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
-import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setWand, setWelcome, welcomeMessage } from "main";
+import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setWand, setWandEnabled, setWelcome, wandEnabled, welcomeMessage } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
 
 let commands = [
@@ -211,7 +211,6 @@ let commands = [
             "[mode: hollow | filled] [tileName: Block]"
         ]
     },
-    
     {
         name: "walls",
         alias: "",
@@ -222,7 +221,26 @@ let commands = [
             "[tileName: Block]"
         ]
     },
+    {
+        name: "toggleeditwand",
+        alias: "togglewand",
+        function: toggleWand,
+        description: "Toggles whether use of the edit wand is enabled",
+        extDescription: "Toggles whether use of the edit wand is enabled",
+        usage: [
+            ""
+        ]
+    },
 ]
+
+function toggleWand(args, player: Player) {
+    setWandEnabled()
+    if (wandEnabled) {
+        player.sendMessage('§aEdit wand enabled')
+    } else {
+        player.sendMessage('§aEdit wand disabled')
+    }
+}
 
 function cylinder(args, player: Player) {
     let direction = 'ud';

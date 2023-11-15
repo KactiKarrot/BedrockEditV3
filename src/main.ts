@@ -24,6 +24,7 @@ export let historyMap = new Map<string, Array<Array<HistoryEntry>>>();
 export let currentWand = new ItemStack('minecraft:wooden_axe', 1);
 export const WAND_NAME = '§bBedrockEdit Wand';
 export const WAND_LORE = ['Sets Position 1 and Position 2 without commands', "Press 'Attack/Destroy' to set Position 1", "Press 'Use' to set Position 2"];
+export let wandEnabled = true;
 
 export let welcomeMessage = true;
 
@@ -42,6 +43,10 @@ world.afterEvents.worldInitialize.subscribe(() => {
         
     }
     welcomeMessage = world.getDynamicProperty('welcomeMsg') as boolean
+    if (world.getDynamicProperty('wandEnabled') == undefined) {
+        world.setDynamicProperty('wandEnabled', true);
+    }
+    wandEnabled = world.getDynamicProperty('wandEnabled') as boolean
     // if (scoreboard.hasParticipant('welcomeMsg')) {
     //     welcomeMessage = false;
     // }
@@ -64,13 +69,18 @@ export function setWand() {
 
 export function setWelcome() {
     welcomeMessage = !welcomeMessage
-    world.setDynamicProperty('welcomeMsg', false)
+    world.setDynamicProperty('welcomeMsg', welcomeMessage)
     // if (welcomeMessage && scoreboard.hasParticipant('welcomeMsg')) {
     //     scoreboard.removeParticipant('welcomeMsg')
     // } else if (!welcomeMessage) {
     //     scoreboard.setScore('welcomeMsg', 0)
     // }
 
+}
+
+export function setWandEnabled() {
+    wandEnabled = !wandEnabled
+    world.setDynamicProperty('wandEnabled', wandEnabled)
 }
 
 world.beforeEvents.chatSend.subscribe((data) => {
