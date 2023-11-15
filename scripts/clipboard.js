@@ -46,7 +46,11 @@ export function paste(args, player) {
         tellError(player, `Nothing in clipboard`);
         return;
     }
-    if (!relPosMap.has(player.name) || (args.length > 0 && args[0] == '-p1')) {
+    if ((args.length > 0 && (args[0] == '-ap' || args[0] == '-p'))) {
+        if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+            tellError(player, "Position 1 not set!");
+            return;
+        }
         relPosMap.set(player.name, subVector3(pos1Map.get(player.name), floorVector3(player.location)));
     }
     let clipSize = getClipSize(player.name);
@@ -59,12 +63,6 @@ export function paste(args, player) {
                 // Adds current world position, blockstate before paste, and blockstate after paste to history map entry, can muse pre for undo, post for redo
                 if ((args != "-a" || !player.dimension.getBlock(pos).isAir) && getClipAt(player.name, { x: x, y: y, z: z }) != undefined) {
                     setBlockAt(player, pos, getClipAt(player.name, { x: x, y: y, z: z }).clone());
-                    // addToHistoryEntry(player.name, {
-                    //     pos: addVector3(addVector3(relPosMap.get(player.name), ceilVector3(player.location)), {x: x, y: y, z: z}),
-                    //     pre: player.dimension.getBlock(addVector3(addVector3(relPosMap.get(player.name), ceilVector3(player.location)), {x: x, y: y, z: z})).permutation.clone(),
-                    //     post: getClipAt(player.name, {x: x, y: y, z: z}).clone()
-                    // });
-                    // player.dimension.getBlock(addVector3(addVector3(relPosMap.get(player.name), ceilVector3(player.location)), {x: x, y: y, z: z})).setPermutation(getClipAt(player.name, {x: x, y: y, z: z}).clone());
                 }
             }
         }

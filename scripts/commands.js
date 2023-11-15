@@ -45,7 +45,7 @@ let commands = [
         alias: "",
         function: wand,
         description: "Sets or gives the wand item",
-        extDescription: "Sets or gives the wand item\nitemName: Name of the item to set as the wand. If not given the player is given the current wand item.",
+        extDescription: "Sets or gives the wand item\nitemName: Name of the item to set as the wand. Use 'default' to reset. If not given the player is given the current wand item.",
         usage: [
             "[itemName: Item]"
         ]
@@ -120,7 +120,17 @@ let commands = [
             "position <pos: x y z>"
         ]
     },
-    // add deselect here
+    // deselect
+    {
+        name: "deselect",
+        alias: "desel",
+        function: deselect,
+        description: "Deselects selected region",
+        extDescription: "Deselects selected region (Removes Position 1 and Position 2)",
+        usage: [
+            ""
+        ]
+    },
     // copy
     {
         name: "copy",
@@ -149,9 +159,9 @@ let commands = [
         alias: "",
         function: paste,
         description: "Pastes a region from the player's clipboard",
-        extDescription: "Pastes a region from the player's clipboard\n-a: Doesn't paste air blocks",
+        extDescription: "Pastes a region from the player's clipboard\n-a: Doesn't paste air blocks\n-p: Pastes starting with the lowest coordinate at Position 1",
         usage: [
-            "[-a]"
+            "[-ap]"
         ]
     },
     // rotate
@@ -361,6 +371,9 @@ function wand(args, player) {
         player.getComponent('minecraft:inventory').container.addItem(currentWand.clone());
         player.sendMessage(`You have been given ${WAND_NAME}`);
         return;
+    }
+    if (args[0] = 'default') {
+        args[0] = 'minecraft:wooden_axe';
     }
     let itemType = ItemTypes.get(args[0]);
     if (itemType == undefined) {
@@ -598,6 +611,11 @@ function pos2(args, player, pos = null) {
             player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
         }
     }
+}
+function deselect(args, player) {
+    pos1Map.delete(player.name);
+    pos2Map.delete(player.name);
+    player.sendMessage(`Deselected region`);
 }
 function set(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
