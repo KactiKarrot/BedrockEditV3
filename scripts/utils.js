@@ -5,6 +5,17 @@ export function tellError(player, msg) {
 }
 export function getPermFromHand(player) {
     let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId;
+    // For some reason, regular wood planks are the only items to still use data values?
+    if (typeId == 'minecraft:planks') {
+        let ids = ['oak', 'spruce', 'birch', 'jungle', 'acacia', 'dark_oak'];
+        let perm = BlockPermutation.resolve(typeId);
+        ids.forEach((e) => {
+            if (perm.withState('wood_type', e).getItemStack().isStackableWith(player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)).valueOf() == true) {
+                perm = perm.withState('wood_type', e);
+            }
+        });
+        return perm;
+    }
     if (typeId == 'minecraft:water_bucket') {
         typeId = 'minecraft:water';
     }

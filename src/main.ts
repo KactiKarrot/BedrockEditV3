@@ -1,4 +1,4 @@
-import { world, system, Vector3, BlockPermutation, ScoreboardObjective, Player, EntityInventoryComponent, ItemStack} from "@minecraft/server";
+import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack } from "@minecraft/server";
 import { commands, pos1, pos2 } from "commands";
 import { compareVector3, tellError } from "utils";
 
@@ -20,7 +20,7 @@ export interface HistoryEntry {
 export let historyIndexMap = new Map<string, number>();
 export let historyMap = new Map<string, Array<Array<HistoryEntry>>>();
 
-export let scoreboard: ScoreboardObjective;
+// export let scoreboard: ScoreboardObjective;
 export let currentWand = new ItemStack('minecraft:wooden_axe', 1);
 export const WAND_NAME = '§bBedrockEdit Wand';
 export const WAND_LORE = ['Sets Position 1 and Position 2 without commands', "Press 'Attack/Destroy' to set Position 1", "Press 'Use' to set Position 2"];
@@ -28,34 +28,49 @@ export const WAND_LORE = ['Sets Position 1 and Position 2 without commands', "Pr
 export let welcomeMessage = true;
 
 world.afterEvents.worldInitialize.subscribe(() => {
-    scoreboard = world.scoreboard.getObjective("_beData")
-    if (scoreboard == null || scoreboard == undefined) {
-        scoreboard = world.scoreboard.addObjective("_beData", "_beData");
-        scoreboard.setScore("wand.minecraft:wooden_axe", 0);
+    // scoreboard = world.scoreboard.getObjective("_beData")
+    // if (scoreboard == null || scoreboard == undefined) {
+    //     scoreboard = world.scoreboard.addObjective("_beData", "_beData");
+    //     scoreboard.setScore("wand.minecraft:wooden_axe", 0);
+    // }
+    if (world.getDynamicProperty('wand') == undefined) {
+        world.setDynamicProperty('wand', 'minecraft:wooden_axe')
     }
     setWand();
-    if (scoreboard.hasParticipant('welcomeMsg')) {
-        welcomeMessage = false;
+    if (world.getDynamicProperty('welcomeMsg') == undefined) {
+        world.setDynamicProperty('welcomeMsg', true)
+        
     }
+    welcomeMessage = world.getDynamicProperty('welcomeMsg') as boolean
+    // if (scoreboard.hasParticipant('welcomeMsg')) {
+    //     welcomeMessage = false;
+    // }
+
+    
 })
 
 export function setWand() {
-    scoreboard.getParticipants().forEach((e) => {
-        if (e.displayName.substring(0, 5) == "wand.") {
-            currentWand = new ItemStack(e.displayName.substring(5));
-            currentWand.nameTag = WAND_NAME;
-            currentWand.setLore(WAND_LORE);
-        }
-    })
+    // scoreboard.getParticipants().forEach((e) => {
+    //     if (e.displayName.substring(0, 5) == "wand.") {
+    //         currentWand = new ItemStack(e.displayName.substring(5));
+    //         currentWand.nameTag = WAND_NAME;
+    //         currentWand.setLore(WAND_LORE);
+    //     }
+    // })
+    currentWand = new ItemStack(world.getDynamicProperty('wand') as string);
+    currentWand.nameTag = WAND_NAME;
+    currentWand.setLore(WAND_LORE);
 }
 
 export function setWelcome() {
     welcomeMessage = !welcomeMessage
-    if (welcomeMessage && scoreboard.hasParticipant('welcomeMsg')) {
-        scoreboard.removeParticipant('welcomeMsg')
-    } else if (!welcomeMessage) {
-        scoreboard.setScore('welcomeMsg', 0)
-    }
+    world.setDynamicProperty('welcomeMsg', false)
+    // if (welcomeMessage && scoreboard.hasParticipant('welcomeMsg')) {
+    //     scoreboard.removeParticipant('welcomeMsg')
+    // } else if (!welcomeMessage) {
+    //     scoreboard.setScore('welcomeMsg', 0)
+    // }
+
 }
 
 world.beforeEvents.chatSend.subscribe((data) => {

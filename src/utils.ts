@@ -1,4 +1,4 @@
-import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent} from "@minecraft/server"
+import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent, Vector2} from "@minecraft/server"
 import { historyMap, clipMap, HistoryEntry, historyIndexMap } from "main"
 
 
@@ -8,6 +8,19 @@ export function tellError(player: Player, msg) {
 
 export function getPermFromHand(player: Player): BlockPermutation {
     let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId;
+
+    // For some reason, regular wood planks are the only items to still use data values?
+    if (typeId == 'minecraft:planks') {
+        let ids = ['oak', 'spruce', 'birch', 'jungle', 'acacia', 'dark_oak'];
+        let perm = BlockPermutation.resolve(typeId);
+        ids.forEach((e) => {
+            if (perm.withState('wood_type', e).getItemStack().isStackableWith((player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)).valueOf() == true) {
+                perm =  perm.withState('wood_type', e);
+            }
+        })
+        return perm;
+    }
+
     if (typeId == 'minecraft:water_bucket') {
         typeId = 'minecraft:water';
     }

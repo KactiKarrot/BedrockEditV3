@@ -1,7 +1,7 @@
-import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction, ItemStack, ItemTypes } from "@minecraft/server";
+import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction, ItemStack, ItemTypes, world } from "@minecraft/server";
 import { ShapeModes, generateEllipse, generateEllipsoid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
-import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, scoreboard, setWand, setWelcome, welcomeMessage } from "main";
+import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setWand, setWelcome, welcomeMessage } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
 
 let commands = [
@@ -201,6 +201,27 @@ let commands = [
             "[border: thick | thin | filled] [tileName: Block]"
         ]
     },
+    {
+        name: "cube",
+        alias: "box",
+        function: cube,
+        description: "Generates a cube",
+        extDescription: "Generates a cube between Position 1 and Position 2",
+        usage: [
+            "[mode: hollow | filled] [tileName: Block]"
+        ]
+    },
+    
+    {
+        name: "walls",
+        alias: "",
+        function: walls,
+        description: "Generates four wall",
+        extDescription: "Generates four walls between Position 1 and Position 2",
+        usage: [
+            "[tileName: Block]"
+        ]
+    },
 ]
 
 function cylinder(args, player: Player) {
@@ -339,6 +360,87 @@ function ellipsoid(args, player: Player) {
         }
     }
     player.sendMessage(`§aSuccessfully generated ellipsoid (${blockCount} blocks)`);
+}
+
+function cube(args, player: Player) {
+    let mode = 'filled'
+    let perm = getPermFromHand(player);
+    if (args.length >= 1) {
+        if (args[0].toLowerCase() != 'hollow' && args[0].toLowerCase() != 'filled') {
+            tellError(player, `Invalid mode: ${args[1]}`)
+            return
+        }
+        mode = args[0].toLowerCase();
+    }
+    if (args.length >= 2 && args[1] != '') {
+        if (BlockTypes.get(args[1]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`)
+            return;
+        }
+        perm = BlockPermutation.resolve(args[1]);
+    }
+
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+
+    let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    let blockCount = 0;
+
+    addHistoryEntry(player.name);
+    for (let x = 0; x < selSize.x; x++) {
+        for (let y = 0; y < selSize.y; y++) {
+            for (let z = 0; z < selSize.z; z++) {
+                if (mode == 'filled' || (x == 0 || x == selSize.x - 1) || (y == 0 || y == selSize.y - 1) || (z == 0 || z == selSize.z - 1)) {
+                    setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), {x: x, y: y, z: z}), perm);
+                    blockCount++;
+                }
+            }
+        }
+    }
+
+    player.sendMessage(`§aSuccessfully generated cube (${blockCount} blocks)`)
+}
+
+function walls(args, player: Player) {
+    let perm = getPermFromHand(player);
+    if (args.length >= 1 && args[0] != '') {
+        if (BlockTypes.get(args[0]) == undefined) {
+            tellError(player, `Block ${args[1]} not found`)
+            return;
+        }
+        perm = BlockPermutation.resolve(args[0]);
+    }
+
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    let blockCount = 0;
+
+    addHistoryEntry(player.name);
+    for (let x = 0; x < selSize.x; x++) {
+        for (let y = 0; y < selSize.y; y++) {
+            for (let z = 0; z < selSize.z; z++) {
+                if ((x == 0 || x == selSize.x - 1) || (z == 0 || z == selSize.z - 1)) {
+                    setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), {x: x, y: y, z: z}), perm);
+                    blockCount++;
+                }
+            }
+        }
+    }
+
+    player.sendMessage(`§aSuccessfully generated walls (${blockCount} blocks)`)
 }
 
 function help(args, player: Player) {
@@ -825,8 +927,9 @@ function wand(args, player: Player) {
         tellError(player, `Item ${args[0]} not found`);
         return;
     }
-    scoreboard.removeParticipant('wand.' + currentWand.typeId);
-    scoreboard.setScore("wand." + itemType.id, 0);
+    // scoreboard.removeParticipant('wand.' + currentWand.typeId);
+    // scoreboard.setScore("wand." + itemType.id, 0);
+    world.setDynamicProperty('wand', itemType.id);
     setWand();
     player.sendMessage(`§aSet wand item to ${currentWand.typeId}`)
 }
@@ -911,9 +1014,14 @@ function pos1(args, player: Player, pos: Vector3 = null) {
             break;
         }
     }
-    if (pos1Map.has(player.name) || !compareVector3(pos, pos1Map.get(player.name))) {
+    if (!pos1Map.has(player.name) || !compareVector3(pos, pos1Map.get(player.name))) {
         pos1Map.set(player.name, pos);
-        player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        if (pos2Map.has(player.name)) {
+            let diff =  addVector3({x: 1, y: 1, z: 1}, diffVector3(pos, pos2Map.get(player.name)));
+            player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
+        } else {
+            player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        }
     }
 }
 
@@ -997,9 +1105,14 @@ function pos2(args, player: Player, pos: Vector3 = null) {
             break;
         }
     }
-    if (pos2Map.has(player.name) || !compareVector3(pos, pos2Map.get(player.name))) {
+    if (!pos2Map.has(player.name) || !compareVector3(pos, pos2Map.get(player.name))) {
         pos2Map.set(player.name, pos);
-        player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        if (pos1Map.has(player.name)) {
+            let diff =  addVector3({x: 1, y: 1, z: 1}, diffVector3(pos, pos1Map.get(player.name)));
+            player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
+        } else {
+            player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        }
     }
 }
 
