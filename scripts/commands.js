@@ -1,5 +1,5 @@
 import { BlockPermutation, BlockTypes, Direction, ItemTypes, world } from "@minecraft/server";
-import { generateCone, generateDome, generateEllipse, generateEllipsoid, generatePyramid } from "Circle-Generator/Controller";
+import { ShapeModes, generateCone, generateDome, generateEllipse, generateEllipsoid, generatePyramid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
 import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setWand, setWandEnabled, setWelcome, wandEnabled, welcomeMessage } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
@@ -120,13 +120,68 @@ let commands = [
             "position <pos: x y z>"
         ]
     },
+    // shift
+    {
+        name: "shift",
+        alias: "",
+        function: shift,
+        description: "Moves the selection",
+        extDescription: "Moves the selection\ndistance: Distance to move selection (defaults to 1)\ndirection: Direciton to move selection (defaults to me/facing/forward)",
+        usage: [
+            "[distance: int] [direction: me|facing|forward|right|backward|left|north|east|south|west|up|down]"
+        ]
+    },
+    // shrink
+    {
+        name: "shrink",
+        alias: "",
+        function: shrink,
+        description: "Shrinks the selection",
+        extDescription: "Shrinks the selection\namount: Amount to shrink selection (defaults to 1)\ndirection: Direciton to move selection (defaults to me/facing/forward)\noppositeAmount: Amount to shrink selection in the opposite direciton (defaults to 0)",
+        usage: [
+            "[amount: int] [direction: me|facing|forward|right|backward|left|north|east|south|west|up|down] [oppositeAmount: int]"
+        ]
+    },
+    // expand
+    {
+        name: "expand",
+        alias: "",
+        function: expand,
+        description: "Expands the selection",
+        extDescription: "Expands the selection\namount: Amount to shrink selection (defaults to 1)\ndirection: Direciton to move selection (defaults to me/facing/forward)\noppositeAmount: Amount to shrink selection in the opposite direciton (defaults to 0)",
+        usage: [
+            "[amount: int] [direction: me|facing|forward|right|backward|left|north|east|south|west|up|down] [oppositeAmount: int]"
+        ]
+    },
+    // inset
+    {
+        name: "inset",
+        alias: "",
+        function: shrink,
+        description: "Shrinks the selection in all directions",
+        extDescription: "Shrinks the selection in all directions\namount: Amount to shrink selection (defaults to 1)",
+        usage: [
+            "[amount: int]"
+        ]
+    },
+    // outset
+    {
+        name: "outset",
+        alias: "",
+        function: expand,
+        description: "Expands the selection in all directions",
+        extDescription: "Expands the selection in all directions\namount: Amount to shrink selection (defaults to 1)",
+        usage: [
+            "[amount: int]"
+        ]
+    },
     // deselect
     {
         name: "deselect",
         alias: "desel",
         function: deselect,
-        description: "Deselects selected region",
-        extDescription: "Deselects selected region (Removes Position 1 and Position 2)",
+        description: "Deselects selection",
+        extDescription: "Deselects selection (Removes Position 1 and Position 2)",
         usage: [
             ""
         ]
@@ -191,8 +246,8 @@ let commands = [
         name: "set",
         alias: "",
         function: set,
-        description: "Sets selection to given or held block",
-        extDescription: "Sets selection to given or held block\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
+        description: "Sets selected region to given or held block",
+        extDescription: "Sets selected region to given or held block\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
             "[tileName: Block]"
         ]
@@ -202,8 +257,8 @@ let commands = [
         name: "remove",
         alias: "rm",
         function: remove,
-        description: "Removes a selection",
-        extDescription: "Removes a selection",
+        description: "Removes the selected region",
+        extDescription: "Removes the selected region",
         usage: [
             ""
         ]
@@ -213,8 +268,8 @@ let commands = [
         name: "move",
         alias: "mv",
         function: move,
-        description: "Moves the selection",
-        extDescription: "Moves the selection\ndistance: Distance to move selection (defaults to 1)\ndirection: Direciton to move selection (defaults to me/facing/forward)\n-a: Doesn't move air blocks",
+        description: "Moves the selected region",
+        extDescription: "Moves the selected region\ndistance: Distance to move selected region (defaults to 1)\ndirection: Direction to move selected region (defaults to me/facing/forward)\n-a: Doesn't move air blocks",
         usage: [
             "[distance: int] [direction: me|facing|forward|right|backward|left|north|east|south|west|up|down] [-a]"
         ]
@@ -224,8 +279,8 @@ let commands = [
         name: "stack",
         alias: "",
         function: stack,
-        description: "Stacks the selection",
-        extDescription: "Stacks the selection\namount: Number of times to copy selection\noffset: Amount of blocks between each copy\n-a: Doesn't stack air blocks",
+        description: "Stacks the selected region",
+        extDescription: "Stacks the selected region\namount: Number of times to copy selected region\noffset: Amount of blocks between each copy\n-a: Doesn't stack air blocks",
         usage: [
             "[amount: int] [me|facing|forward|right|backward|left|north|east|south|west|up|down] [offset: int] [-a]"
         ]
@@ -236,7 +291,7 @@ let commands = [
         alias: "box",
         function: cube,
         description: "Generates a cube",
-        extDescription: "Generates a cube between Position 1 and Position 2",
+        extDescription: "Generates a cube between Position 1 and Position 2\nmode: Whether the cube is filled in or hollow\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
             "[mode: hollow | filled] [tileName: Block]"
         ]
@@ -247,7 +302,7 @@ let commands = [
         alias: "",
         function: walls,
         description: "Generates four wall",
-        extDescription: "Generates four walls between Position 1 and Position 2",
+        extDescription: "Generates four walls between Position 1 and Position 2\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
             "[tileName: Block]"
         ]
@@ -258,9 +313,9 @@ let commands = [
         alias: "cyl",
         function: cylinder,
         description: "Generates a cylinder",
-        extDescription: "Generates an cylinder between Position 1 and Position 2",
+        extDescription: "Generates a cylinder between Position 1 and Position 2\ndirection: Direction for the faces of the cylinder to face (default up/down)\nmode: Whether the cylinder is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
-            "[direction: ud | ns | ew] [mode: thick | thin | filled] [tileName: Block]"
+            "[direction: ud | ns | ew] [mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
         ]
     },
     // ellipsoid
@@ -269,7 +324,7 @@ let commands = [
         alias: "sphere",
         function: ellipsoid,
         description: "Generates an ellipsoid",
-        extDescription: "Generates an ellipsoid between Position 1 and Position 2",
+        extDescription: "Generates an ellipsoid between Position 1 and Position 2\nmode: Whether the ellipsoid is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
             "[mode: thick | thin | filled] [tileName: Block]"
         ]
@@ -280,9 +335,9 @@ let commands = [
         alias: "",
         function: dome,
         description: "Generates a dome",
-        extDescription: "Generates a dome between Position 1 and Position 2",
+        extDescription: "Generates a dome between Position 1 and Position 2\nmode: Whether the dome is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
-            "[mode: thick | thin | filled] [tileName: Block]"
+            "[mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
         ]
     },
     // pyramid
@@ -291,9 +346,9 @@ let commands = [
         alias: "pyr",
         function: pyramid,
         description: "Generates a pyramid (works best with equal x and z dimensions)",
-        extDescription: "Generates a pyramid between Position 1 and Position 2 (works best with equal x and z dimensions)",
+        extDescription: "Generates a pyramid between Position 1 and Position 2 (works best with equal x and z dimensions)\nmode: Whether the pyramid is filled or hollow\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
-            "[mode: hollow | filled] [tileName: Block]"
+            "[mode: hollow | filled] [fillFaces: boolean] [tileName: Block]"
         ]
     },
     // cone
@@ -302,9 +357,9 @@ let commands = [
         alias: "",
         function: cone,
         description: "Generates a cone",
-        extDescription: "Generates a cone between Position 1 and Position 2",
+        extDescription: "Generates a cone between Position 1 and Position 2\nmode: Whether the cone is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
-            "[mode: thick | thin | filled] [tileName: Block]"
+            "[mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
         ]
     },
 ];
@@ -612,6 +667,86 @@ function pos2(args, player, pos = null) {
         }
     }
 }
+function shift(args, player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let amount = 1;
+    if (args.length >= 1) {
+        if (Number.isNaN(parseInt(args[0]))) {
+            tellError(player, `Invalid distance: '${args[0]}'`);
+            return;
+        }
+        amount = parseInt(args[0]);
+    }
+    let direction = getPrimaryDirection(player.getViewDirection());
+    if (args.length >= 2) {
+        switch (args[1].toLowerCase()) {
+            case 'me': { }
+            case 'forward': { }
+            case 'facing': {
+                break;
+            }
+            case 'right': {
+                direction = rotateDirection(direction, 90);
+                break;
+            }
+            case 'backward': {
+                direction = rotateDirection(direction, 180);
+                break;
+            }
+            case 'left': {
+                direction = rotateDirection(direction, 270);
+                break;
+                break;
+            }
+            case 'north': {
+                direction = Direction.North;
+                break;
+            }
+            case 'east': {
+                direction = Direction.East;
+                break;
+            }
+            case 'south': {
+                direction = Direction.South;
+                break;
+            }
+            case 'west': {
+                direction = Direction.West;
+                break;
+            }
+            case 'up': {
+                direction = Direction.Up;
+                break;
+            }
+            case 'down': {
+                direction = Direction.Down;
+                break;
+            }
+            default: {
+                tellError(player, `Invalid direction '${args[1]}'`);
+                break;
+            }
+        }
+    }
+    pos1Map.set(player.name, shiftVector3(pos1Map.get(player.name), direction, amount));
+    pos2Map.set(player.name, shiftVector3(pos2Map.get(player.name), direction, amount));
+    player.sendMessage(`Shifted selection ${amount} blocks ${direction}`);
+}
+function shrink(args, player) {
+}
+function expand(args, player) {
+}
+function inset(args, player) {
+}
+function outset(args, player) {
+}
 function deselect(args, player) {
     pos1Map.delete(player.name);
     pos2Map.delete(player.name);
@@ -756,7 +891,7 @@ function move(args, player) {
     }
     pos1Map.set(player.name, shiftVector3(pos1Map.get(player.name), direction, amount));
     pos2Map.set(player.name, shiftVector3(pos2Map.get(player.name), direction, amount));
-    player.sendMessage(`§aMoved ${selSize.x * selSize.y * selSize.z} blocks`);
+    player.sendMessage(`§aMoved ${selSize.x * selSize.y * selSize.z} blocks ${direction}`);
 }
 function stack(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -905,7 +1040,7 @@ function cube(args, player) {
     let perm = getPermFromHand(player);
     if (args.length >= 1) {
         if (args[0].toLowerCase() != 'hollow' && args[0].toLowerCase() != 'filled') {
-            tellError(player, `Invalid mode: ${args[1]}`);
+            tellError(player, `Invalid mode: ${args[0]}`);
             return;
         }
         mode = args[0].toLowerCase();
@@ -976,6 +1111,7 @@ function cylinder(args, player) {
     let direction = 'ud';
     let mode = 'filled';
     let perm = getPermFromHand(player);
+    let fillFaces = true;
     if (args.length >= 1) {
         if (args[0].toLowerCase() != 'ud' && args[0].toLowerCase() != 'ns' && args[0].toLowerCase() != 'ew') {
             tellError(player, `Invalid direction: ${args[0]}`);
@@ -990,12 +1126,17 @@ function cylinder(args, player) {
         }
         mode = args[1].toLowerCase();
     }
-    if (args.length >= 3 && args[2] != '') {
+    if (args.length >= 3) {
+        if (args[2] == 'false') {
+            fillFaces = false;
+        }
+    }
+    if (args.length >= 4 && args[3] != '') {
         if (BlockTypes.get(args[2]) == undefined) {
-            tellError(player, `Block ${args[2]} not found`);
+            tellError(player, `Block ${args[3]} not found`);
             return;
         }
-        perm = BlockPermutation.resolve(args[2]);
+        perm = BlockPermutation.resolve(args[3]);
     }
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
@@ -1029,21 +1170,42 @@ function cylinder(args, player) {
                 let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
                 switch (direction) {
                     case 'ud': {
-                        if (mat[i][k].valueOf() == true) {
+                        if (fillFaces && (j == 0 || j == selSize.y - 1)) {
+                            let mat2 = generateEllipse(selSize.x, selSize.z, ShapeModes.filled);
+                            if (mat2[i][k].valueOf() == true) {
+                                setBlockAt(player, pos, perm.clone());
+                                blockCount++;
+                            }
+                        }
+                        else if (mat[i][k].valueOf() == true) {
                             setBlockAt(player, pos, perm.clone());
                             blockCount++;
                         }
                         break;
                     }
                     case 'ns': {
-                        if (mat[i][j].valueOf() == true) {
+                        if (fillFaces && (k == 0 || k == selSize.z - 1)) {
+                            let mat2 = generateEllipse(selSize.x, selSize.y, ShapeModes.filled);
+                            if (mat2[i][j].valueOf() == true) {
+                                setBlockAt(player, pos, perm.clone());
+                                blockCount++;
+                            }
+                        }
+                        else if (mat[i][j].valueOf() == true) {
                             setBlockAt(player, pos, perm.clone());
                             blockCount++;
                         }
                         break;
                     }
                     case 'ew': {
-                        if (mat[k][j].valueOf() == true) {
+                        if (fillFaces && (i == 0 || i == selSize.x - 1)) {
+                            let mat2 = generateEllipse(selSize.z, selSize.y, ShapeModes.filled);
+                            if (mat2[k][j].valueOf() == true) {
+                                setBlockAt(player, pos, perm.clone());
+                                blockCount++;
+                            }
+                        }
+                        else if (mat[k][j].valueOf() == true) {
                             setBlockAt(player, pos, perm.clone());
                             blockCount++;
                         }
@@ -1060,7 +1222,7 @@ function ellipsoid(args, player) {
     let perm = getPermFromHand(player);
     if (args.length >= 1) {
         if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
-            tellError(player, `Invalid mode: ${args[1]}`);
+            tellError(player, `Invalid mode: ${args[0]}`);
             return;
         }
         mode = args[0].toLowerCase();
@@ -1100,19 +1262,25 @@ function ellipsoid(args, player) {
 function dome(args, player) {
     let mode = 'filled';
     let perm = getPermFromHand(player);
+    let fillFaces = true;
     if (args.length >= 1) {
         if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
-            tellError(player, `Invalid mode: ${args[1]}`);
+            tellError(player, `Invalid mode: ${args[0]}`);
             return;
         }
         mode = args[0].toLowerCase();
     }
-    if (args.length >= 2 && args[1] != '') {
-        if (BlockTypes.get(args[1]) == undefined) {
-            tellError(player, `Block ${args[1]} not found`);
+    if (args.length >= 2) {
+        if (args[1] == 'false') {
+            fillFaces = false;
+        }
+    }
+    if (args.length >= 3 && args[2] != '') {
+        if (BlockTypes.get(args[2]) == undefined) {
+            tellError(player, `Block ${args[2]} not found`);
             return;
         }
-        perm = BlockPermutation.resolve(args[1]);
+        perm = BlockPermutation.resolve(args[2]);
     }
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
@@ -1130,7 +1298,7 @@ function dome(args, player) {
         for (let j = 0; j < selSize.y; j++) {
             for (let k = 0; k < selSize.z; k++) {
                 let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
-                if (mat[i][j][k].valueOf() == true) {
+                if (mat[i][j][k].valueOf() == true || (fillFaces && j == 0 && generateEllipse(selSize.x, selSize.z, ShapeModes.filled)[i][k].valueOf() == true)) {
                     setBlockAt(player, pos, perm.clone());
                     blockCount++;
                 }
@@ -1142,19 +1310,25 @@ function dome(args, player) {
 function pyramid(args, player) {
     let mode = 'filled';
     let perm = getPermFromHand(player);
+    let fillFaces = true;
     if (args.length >= 1) {
         if (args[0].toLowerCase() != 'hollow' && args[0].toLowerCase() != 'filled') {
-            tellError(player, `Invalid mode: ${args[1]}`);
+            tellError(player, `Invalid mode: ${args[0]}`);
             return;
         }
         mode = args[0].toLowerCase();
     }
-    if (args.length >= 2 && args[1] != '') {
-        if (BlockTypes.get(args[1]) == undefined) {
-            tellError(player, `Block ${args[1]} not found`);
+    if (args.length >= 2) {
+        if (args[1] == 'false') {
+            fillFaces = false;
+        }
+    }
+    if (args.length >= 3 && args[2] != '') {
+        if (BlockTypes.get(args[2]) == undefined) {
+            tellError(player, `Block ${args[2]} not found`);
             return;
         }
-        perm = BlockPermutation.resolve(args[1]);
+        perm = BlockPermutation.resolve(args[2]);
     }
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
@@ -1172,7 +1346,7 @@ function pyramid(args, player) {
         for (let j = 0; j < selSize.y; j++) {
             for (let k = 0; k < selSize.z; k++) {
                 let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
-                if (mat[i][j][k].valueOf() == true) {
+                if (mat[i][j][k].valueOf() == true || (fillFaces && j == 0)) {
                     setBlockAt(player, pos, perm.clone());
                     blockCount++;
                 }
@@ -1181,22 +1355,29 @@ function pyramid(args, player) {
     }
     player.sendMessage(`§aSuccessfully generated pyramid (${blockCount} blocks)`);
 }
+// Doesn't work (offset is off and top of odd diameter has 2x2)
 function cone(args, player) {
     let mode = 'filled';
     let perm = getPermFromHand(player);
+    let fillFaces = true;
     if (args.length >= 1) {
         if (args[0].toLowerCase() != 'thick' && args[0].toLowerCase() != 'thin' && args[0].toLowerCase() != 'filled') {
-            tellError(player, `Invalid mode: ${args[1]}`);
+            tellError(player, `Invalid mode: ${args[0]}`);
             return;
         }
         mode = args[0].toLowerCase();
     }
-    if (args.length >= 2 && args[1] != '') {
-        if (BlockTypes.get(args[1]) == undefined) {
-            tellError(player, `Block ${args[1]} not found`);
+    if (args.length >= 2) {
+        if (args[1] == 'false') {
+            fillFaces = false;
+        }
+    }
+    if (args.length >= 3 && args[2] != '') {
+        if (BlockTypes.get(args[2]) == undefined) {
+            tellError(player, `Block ${args[2]} not found`);
             return;
         }
-        perm = BlockPermutation.resolve(args[1]);
+        perm = BlockPermutation.resolve(args[2]);
     }
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
@@ -1214,7 +1395,7 @@ function cone(args, player) {
         for (let j = 0; j < selSize.y; j++) {
             for (let k = 0; k < selSize.z; k++) {
                 let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
-                if (mat[i][j][k].valueOf() == true) {
+                if (mat[i][j][k].valueOf() == true || (fillFaces && j == 0 && generateEllipse(selSize.x, selSize.z, ShapeModes.filled)[i][k].valueOf() == true)) {
                     setBlockAt(player, pos, perm.clone());
                     blockCount++;
                 }
