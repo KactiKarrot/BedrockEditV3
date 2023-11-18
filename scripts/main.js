@@ -35,7 +35,7 @@ world.afterEvents.worldInitialize.subscribe(() => {
     }
     wandEnabled = world.getDynamicProperty('wandEnabled');
     if (world.getDynamicProperty('showParticles') == undefined) {
-        world.setDynamicProperty('showParticles', true);
+        world.setDynamicProperty('showParticles', false);
     }
     showParticles = world.getDynamicProperty('showParticles');
     // if (scoreboard.hasParticipant('welcomeMsg')) {

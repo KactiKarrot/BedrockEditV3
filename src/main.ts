@@ -50,7 +50,7 @@ world.afterEvents.worldInitialize.subscribe(() => {
     }
     wandEnabled = world.getDynamicProperty('wandEnabled') as boolean
     if (world.getDynamicProperty('showParticles') == undefined) {
-        world.setDynamicProperty('showParticles', true);
+        world.setDynamicProperty('showParticles', false);
     }
     showParticles = world.getDynamicProperty('showParticles') as boolean
     // if (scoreboard.hasParticipant('welcomeMsg')) {
