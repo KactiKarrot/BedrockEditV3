@@ -1,7 +1,7 @@
 import { BlockPermutation, BlockTypes, Direction, ItemTypes, world } from "@minecraft/server";
 import { ShapeModes, generateCone, generateDome, generateEllipse, generateEllipsoid, generatePyramid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
-import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setWand, setWandEnabled, setWelcome, wandEnabled, welcomeMessage } from "main";
+import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setShowParticles, setWand, setWandEnabled, setWelcome, showParticles, wandEnabled, welcomeMessage } from "main";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
 let commands = [
     // help
@@ -57,6 +57,17 @@ let commands = [
         function: toggleWand,
         description: "Toggles whether use of the edit wand is enabled",
         extDescription: "Toggles whether use of the edit wand is enabled",
+        usage: [
+            ""
+        ]
+    },
+    // toggleoutline
+    {
+        name: "toggleoutline",
+        alias: "showoutline",
+        function: toggleOutline,
+        description: "Toggles whether selection outline particles are rendered",
+        extDescription: "Toggles whether selection outline particles are rendered (WARNING: Large selections can can cause cause performance issues with this on, use your own risk)",
         usage: [
             ""
         ]
@@ -157,7 +168,7 @@ let commands = [
     {
         name: "inset",
         alias: "",
-        function: shrink,
+        function: inset,
         description: "Shrinks the selection in all directions",
         extDescription: "Shrinks the selection in all directions\namount: Amount to shrink selection (defaults to 1)",
         usage: [
@@ -168,7 +179,7 @@ let commands = [
     {
         name: "outset",
         alias: "",
-        function: expand,
+        function: outset,
         description: "Expands the selection in all directions",
         extDescription: "Expands the selection in all directions\namount: Amount to shrink selection (defaults to 1)",
         usage: [
@@ -448,6 +459,15 @@ function toggleWand(args, player) {
     }
     else {
         player.sendMessage('§aEdit wand disabled');
+    }
+}
+function toggleOutline(args, player) {
+    setShowParticles();
+    if (showParticles) {
+        player.sendMessage('§aOutline particles enabled');
+    }
+    else {
+        player.sendMessage('§aOutline particles disabled');
     }
 }
 function undo(args, player) {
@@ -740,8 +760,514 @@ function shift(args, player) {
     player.sendMessage(`Shifted selection ${amount} blocks ${direction}`);
 }
 function shrink(args, player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let amount = 1;
+    if (args.length >= 1) {
+        if (Number.isNaN(parseInt(args[0]))) {
+            tellError(player, `Invalid distance: '${args[0]}'`);
+            return;
+        }
+        amount = parseInt(args[0]);
+    }
+    let direction = getPrimaryDirection(player.getViewDirection());
+    if (args.length >= 2) {
+        switch (args[1].toLowerCase()) {
+            case 'me': { }
+            case 'forward': { }
+            case 'facing': {
+                break;
+            }
+            case 'right': {
+                direction = rotateDirection(direction, 90);
+                break;
+            }
+            case 'backward': {
+                direction = rotateDirection(direction, 180);
+                break;
+            }
+            case 'left': {
+                direction = rotateDirection(direction, 270);
+                break;
+                break;
+            }
+            case 'north': {
+                direction = Direction.North;
+                break;
+            }
+            case 'east': {
+                direction = Direction.East;
+                break;
+            }
+            case 'south': {
+                direction = Direction.South;
+                break;
+            }
+            case 'west': {
+                direction = Direction.West;
+                break;
+            }
+            case 'up': {
+                direction = Direction.Up;
+                break;
+            }
+            case 'down': {
+                direction = Direction.Down;
+                break;
+            }
+            default: {
+                tellError(player, `Invalid direction '${args[1]}'`);
+                break;
+            }
+        }
+    }
+    let oppositeAmount = 0;
+    if (args.length >= 3) {
+        if (isNaN(parseInt(args[2]))) {
+            tellError(player, `Invalid opposite amount: ${args[2]}`);
+            return;
+        }
+        oppositeAmount = parseInt(args[2]);
+    }
+    switch (direction) {
+        case Direction.North: {
+            if (pos1Map.get(player.name).z == pos2Map.get(player.name).z) {
+                tellError(player, `Can't shrink selection any more`);
+                return;
+            }
+            if (pos1Map.get(player.name).z > pos2Map.get(player.name).z) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z - amount
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z + oppositeAmount
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z - amount
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z + oppositeAmount
+                });
+            }
+            break;
+        }
+        case Direction.East: {
+            if (pos1Map.get(player.name).x == pos2Map.get(player.name).x) {
+                tellError(player, `Can't shrink selection any more`);
+                return;
+            }
+            if (pos1Map.get(player.name).x < pos2Map.get(player.name).x) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x + amount,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x - oppositeAmount,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x + amount,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x - oppositeAmount,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z
+                });
+            }
+            break;
+        }
+        case Direction.South: {
+            if (pos1Map.get(player.name).z == pos2Map.get(player.name).z) {
+                tellError(player, `Can't shrink selection any more`);
+                return;
+            }
+            if (pos1Map.get(player.name).z < pos2Map.get(player.name).z) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z + amount
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z + oppositeAmount
+                });
+                pos1Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z + amount
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z + oppositeAmount
+                });
+            }
+            break;
+        }
+        case Direction.West: {
+            if (pos1Map.get(player.name).x == pos2Map.get(player.name).x) {
+                tellError(player, `Can't shrink selection any more`);
+                return;
+            }
+            if (pos1Map.get(player.name).x > pos2Map.get(player.name).x) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x - amount,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x - oppositeAmount,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x - amount,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x - oppositeAmount,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z
+                });
+            }
+            break;
+        }
+        case Direction.Up: {
+            if (pos1Map.get(player.name).y == pos2Map.get(player.name).y) {
+                tellError(player, `Can't shrink selection any more`);
+                return;
+            }
+            if (pos1Map.get(player.name).y < pos2Map.get(player.name).y) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y + amount,
+                    z: pos1Map.get(player.name).z
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y + oppositeAmount,
+                    z: pos2Map.get(player.name).z
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y + amount,
+                    z: pos2Map.get(player.name).z
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y + oppositeAmount,
+                    z: pos1Map.get(player.name).z
+                });
+            }
+            break;
+        }
+        case Direction.Down: {
+            if (pos1Map.get(player.name).y == pos2Map.get(player.name).y) {
+                tellError(player, `Can't shrink selection any more`);
+                return;
+            }
+            if (pos1Map.get(player.name).y > pos2Map.get(player.name).y) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y - amount,
+                    z: pos1Map.get(player.name).z
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y - oppositeAmount,
+                    z: pos2Map.get(player.name).z
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y - amount,
+                    z: pos2Map.get(player.name).z
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y - oppositeAmount,
+                    z: pos1Map.get(player.name).z
+                });
+            }
+            break;
+        }
+    }
+    player.sendMessage(`§aShrunk selection ${amount} blocks`);
 }
 function expand(args, player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let amount = 1;
+    if (args.length >= 1) {
+        if (Number.isNaN(parseInt(args[0]))) {
+            tellError(player, `Invalid distance: '${args[0]}'`);
+            return;
+        }
+        amount = parseInt(args[0]);
+    }
+    let direction = getPrimaryDirection(player.getViewDirection());
+    if (args.length >= 2) {
+        switch (args[1].toLowerCase()) {
+            case 'me': { }
+            case 'forward': { }
+            case 'facing': {
+                break;
+            }
+            case 'right': {
+                direction = rotateDirection(direction, 90);
+                break;
+            }
+            case 'backward': {
+                direction = rotateDirection(direction, 180);
+                break;
+            }
+            case 'left': {
+                direction = rotateDirection(direction, 270);
+                break;
+                break;
+            }
+            case 'north': {
+                direction = Direction.North;
+                break;
+            }
+            case 'east': {
+                direction = Direction.East;
+                break;
+            }
+            case 'south': {
+                direction = Direction.South;
+                break;
+            }
+            case 'west': {
+                direction = Direction.West;
+                break;
+            }
+            case 'up': {
+                direction = Direction.Up;
+                break;
+            }
+            case 'down': {
+                direction = Direction.Down;
+                break;
+            }
+            default: {
+                tellError(player, `Invalid direction '${args[1]}'`);
+                break;
+            }
+        }
+    }
+    let oppositeAmount = 0;
+    if (args.length >= 3) {
+        if (isNaN(parseInt(args[2]))) {
+            tellError(player, `Invalid opposite amount: ${args[2]}`);
+            return;
+        }
+        oppositeAmount = parseInt(args[2]);
+    }
+    amount = -amount;
+    oppositeAmount = -oppositeAmount;
+    switch (direction) {
+        case Direction.North: {
+            if (pos1Map.get(player.name).z > pos2Map.get(player.name).z) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z - amount
+                });
+                pos2Map.set(player.name, {
+                    y: pos2Map.get(player.name).y,
+                    x: pos2Map.get(player.name).x,
+                    z: pos2Map.get(player.name).z + oppositeAmount
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z - amount
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z + oppositeAmount
+                });
+            }
+            break;
+        }
+        case Direction.East: {
+            if (pos1Map.get(player.name).x < pos2Map.get(player.name).x) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x + amount,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x - oppositeAmount,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x + amount,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x - oppositeAmount,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z
+                });
+            }
+            break;
+        }
+        case Direction.South: {
+            if (pos1Map.get(player.name).z < pos2Map.get(player.name).z) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z - amount
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z + oppositeAmount
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z - amount
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z + oppositeAmount
+                });
+            }
+            break;
+        }
+        case Direction.West: {
+            if (pos1Map.get(player.name).x > pos2Map.get(player.name).x) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x + amount,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x - oppositeAmount,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x + amount,
+                    y: pos2Map.get(player.name).y,
+                    z: pos2Map.get(player.name).z
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x - oppositeAmount,
+                    y: pos1Map.get(player.name).y,
+                    z: pos1Map.get(player.name).z
+                });
+            }
+            break;
+        }
+        case Direction.Up: {
+            if (pos1Map.get(player.name).y < pos2Map.get(player.name).y) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y - amount,
+                    z: pos1Map.get(player.name).z
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y + oppositeAmount,
+                    z: pos2Map.get(player.name).z
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y - amount,
+                    z: pos2Map.get(player.name).z
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y + oppositeAmount,
+                    z: pos1Map.get(player.name).z
+                });
+            }
+            break;
+        }
+        case Direction.Down: {
+            if (pos1Map.get(player.name).y > pos2Map.get(player.name).y) {
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y + amount,
+                    z: pos1Map.get(player.name).z
+                });
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y - oppositeAmount,
+                    z: pos2Map.get(player.name).z
+                });
+            }
+            else {
+                pos2Map.set(player.name, {
+                    x: pos2Map.get(player.name).x,
+                    y: pos2Map.get(player.name).y + amount,
+                    z: pos2Map.get(player.name).z
+                });
+                pos1Map.set(player.name, {
+                    x: pos1Map.get(player.name).x,
+                    y: pos1Map.get(player.name).y - oppositeAmount,
+                    z: pos1Map.get(player.name).z
+                });
+            }
+            break;
+        }
+    }
+    player.sendMessage(`§aExpanded selection ${amount} blocks`);
 }
 function inset(args, player) {
 }
@@ -750,7 +1276,7 @@ function outset(args, player) {
 function deselect(args, player) {
     pos1Map.delete(player.name);
     pos2Map.delete(player.name);
-    player.sendMessage(`Deselected region`);
+    player.sendMessage(`§aDeselected region`);
 }
 function set(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {

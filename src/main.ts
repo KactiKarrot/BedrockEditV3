@@ -1,6 +1,6 @@
 import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack } from "@minecraft/server";
 import { commands, pos1, pos2 } from "commands";
-import { compareVector3, tellError } from "utils";
+import { addVector3, compareVector3, diffVector3, maxVector3, minVector3, subVector3, tellError } from "utils";
 
 export const PREFIX = "./";
 
@@ -10,6 +10,8 @@ export let pos1Map = new Map<string, Vector3>(); // <playerName, position>
 export let pos2Map = new Map<string, Vector3>(); // <playerName, position>
 export let relPosMap = new Map<string, Vector3>();
 export let clipMap = new Map<string, Array<Array<Array<BlockPermutation>>>>(); // <playerName, x<y<z<data>>>>
+
+export let showParticles = false;
 
 export interface HistoryEntry {
     pos: Vector3,
@@ -47,6 +49,10 @@ world.afterEvents.worldInitialize.subscribe(() => {
         world.setDynamicProperty('wandEnabled', true);
     }
     wandEnabled = world.getDynamicProperty('wandEnabled') as boolean
+    if (world.getDynamicProperty('showParticles') == undefined) {
+        world.setDynamicProperty('showParticles', true);
+    }
+    showParticles = world.getDynamicProperty('showParticles') as boolean
     // if (scoreboard.hasParticipant('welcomeMsg')) {
     //     welcomeMessage = false;
     // }
@@ -82,6 +88,58 @@ export function setWandEnabled() {
     wandEnabled = !wandEnabled
     world.setDynamicProperty('wandEnabled', wandEnabled)
 }
+
+export function setShowParticles() {
+    showParticles = !showParticles
+    world.setDynamicProperty('showParticles', showParticles)
+}
+
+system.runInterval(() => {
+    if (!showParticles) {
+        return;
+    }
+
+    world.getAllPlayers().forEach((p) => {
+        if (!pos1Map.has(p.name) || !pos2Map.has(p.name)) {
+            return;
+        }
+        let min = minVector3(pos1Map.get(p.name), pos2Map.get(p.name));
+        let diff = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(p.name), pos2Map.get(p.name)))
+        for (let x = 0; x < diff.x; x++) {
+            for (let y = 0; y < diff.y; y++) {
+                for (let z = 0; z < diff.z; z++) {
+                    if (compareVector3(pos1Map.get(p.name), addVector3({x: x, y: y, z: z}, min)) || compareVector3(pos2Map.get(p.name), addVector3({x: x, y: y, z: z}, min)).valueOf() == true) {
+                        p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y}.0 ${min.z + z + 1}.0`)
+                        p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y}.0 ${min.z + z}.0`)
+                        p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y + 1}.0 ${min.z + z + 1}.0`)
+                        p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y + 1}.0 ${min.z + z}.0`)
+                        p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y}.0 ${min.z + z + 1}.0`)
+                        p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y}.0 ${min.z + z}.0`)
+                        p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y+ 1}.0 ${min.z + z + 1}.0`)
+                        p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y + 1}.0 ${min.z + z}.0`)
+                    } else if (
+                        ((x == 0 || x == diff.x - 1) && (y == 0 || y == diff.y - 1)) ||
+                        ((x == 0 || x == diff.x - 1) && (z == 0 || z == diff.z - 1)) || 
+                        ((z == 0 || z == diff.z - 1) && (y == 0 || y == diff.y - 1))
+                    ) {
+                        p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.5} ${min.z + z + 0.0}.0`)
+                        p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.5} ${min.z + z + 1.0}.0`)
+
+                        p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.0}.0 ${min.z + z + 0.5}`)
+                        p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 1.0}.0 ${min.z + z + 0.5}`)
+
+                        p.runCommand(`particle be:outline-red ${min.x + x + 0.0}.0 ${min.y + y + 0.5} ${min.z + z + 0.5}`)
+                        p.runCommand(`particle be:outline-red ${min.x + x + 1.0}.0 ${min.y + y + 0.5} ${min.z + z + 0.5}`)
+
+
+                        // p.runCommand(`particle be:outline-red ${min.x + x + 0.0}.0 ${min.y + y + 0.0} ${min.z + z + 0.0}`)
+                    }
+                }
+            }
+        }
+    })
+    
+}, 15)
 
 world.beforeEvents.chatSend.subscribe((data) => {
     const player = data.sender;
@@ -136,4 +194,11 @@ world.afterEvents.playerSpawn.subscribe((data) => {
         data.player.sendMessage(`<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`)
         data.player.sendMessage(`<§bBedrockEdit§r> §aTo get started, run ${PREFIX}help`)
     }
+})
+
+world.afterEvents.playerLeave.subscribe((data) => {
+    pos1Map.delete(data.playerName);
+    pos2Map.delete(data.playerName);
+    relPosMap.delete(data.playerName);
+    clipMap.delete(data.playerName);
 })
