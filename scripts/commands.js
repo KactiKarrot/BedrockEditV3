@@ -78,9 +78,9 @@ let commands = [
         alias: "",
         function: undo,
         description: "Undoes an action",
-        extDescription: "Undoes an action",
+        extDescription: "Undoes an action\ntimes: Number of actions to undo\nplayer: Player to undo actions for (useful for admins)",
         usage: [
-            ""
+            "[times: int] [player: Player]"
         ]
     },
     // redo
@@ -89,9 +89,9 @@ let commands = [
         alias: "",
         function: redo,
         description: "Redoes an action",
-        extDescription: "Redoes an action",
+        extDescription: "Redoes an action\ntimes: Number of actions to redo\nplayer: Player to redo actions for (useful for admins)",
         usage: [
-            ""
+            "[times: int] [player: Player]"
         ]
     },
     // clearhistory
@@ -312,7 +312,7 @@ let commands = [
         name: "walls",
         alias: "",
         function: walls,
-        description: "Generates four wall",
+        description: "Generates four walls",
         extDescription: "Generates four walls between Position 1 and Position 2\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
         usage: [
             "[tileName: Block]"
@@ -471,40 +471,81 @@ function toggleOutline(args, player) {
     }
 }
 function undo(args, player) {
-    if (historyMap.get(player.name) == undefined || historyMap.get(player.name).length <= 0) {
+    let name = player.name;
+    let times = 1;
+    if (args.length >= 1 && isNaN(parseInt(args[0]))) {
+        times = parseInt(args[0]);
+    }
+    if (isNaN(parseInt(args[0]))) {
+        tellError(player, `Invalid number: ${args[0]}`);
+    }
+    if (args.length >= 2 && args[1] != '') {
+        name = args[1];
+    }
+    if (historyMap.get(name) == undefined || historyMap.get(name).length <= 0) {
         tellError(player, "Nothing to undo");
         return;
     }
-    if (historyIndexMap.get(player.name) == historyMap.get(player.name).length) {
+    if (historyIndexMap.get(name) == historyMap.get(name).length) {
         tellError(player, "Nothing more to undo");
         return;
     }
-    let entry = getHistory(player.name, historyIndexMap.get(player.name));
-    for (let i = entry.length - 1; i >= 0; i--) {
-        player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].pre.clone());
+    let changes = 0;
+    let actions = 0;
+    for (let i = 0; i < times; i++) {
+        if (historyIndexMap.get(name) == historyMap.get(name).length) {
+            break;
+        }
+        let entry = getHistory(name, historyIndexMap.get(name));
+        for (let i = entry.length - 1; i >= 0; i--) {
+            player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].pre.clone());
+            changes++;
+        }
+        historyIndexMap.set(name, historyIndexMap.get(name) + 1);
+        actions++;
     }
-    historyIndexMap.set(player.name, historyIndexMap.get(player.name) + 1);
-    player.sendMessage(`§aUndid ${entry.length} block changes`);
+    player.sendMessage(`§aUndid ${actions} actions (${changes} blocks)`);
 }
 function redo(args, player) {
-    if (historyMap.get(player.name) == undefined || historyMap.get(player.name).length <= 0) {
+    let name = player.name;
+    let times = 1;
+    if (args.length >= 1 && isNaN(parseInt(args[0]))) {
+        times = parseInt(args[0]);
+    }
+    if (isNaN(parseInt(args[0]))) {
+        tellError(player, `Invalid number: ${args[0]}`);
+    }
+    if (args.length >= 2 && args[1] != '') {
+        name = args[1];
+    }
+    if (historyMap.get(name) == undefined || historyMap.get(name).length <= 0) {
         tellError(player, "Nothing to redo");
         return;
     }
-    if (historyIndexMap.get(player.name) == 0) {
+    if (historyIndexMap.get(name) == 0) {
         tellError(player, "Nothing more to redo");
         return;
     }
-    historyIndexMap.set(player.name, historyIndexMap.get(player.name) - 1);
-    let entry = getHistory(player.name, historyIndexMap.get(player.name));
-    for (let i = 0; i < entry.length; i++) {
-        player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].post.clone());
+    let changes = 0;
+    let actions = 0;
+    for (let i = 0; i < times; i++) {
+        historyIndexMap.set(name, historyIndexMap.get(name) - 1);
+        let entry = getHistory(name, historyIndexMap.get(name));
+        for (let i = 0; i < entry.length; i++) {
+            player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].post.clone());
+            changes++;
+        }
+        actions++;
     }
-    player.sendMessage(`§aRedid ${entry.length} block changes`);
+    player.sendMessage(`§aRedid ${actions} actions (${changes} blocks)`);
 }
 function clearHistory(args, player) {
-    historyMap.delete(player.name);
-    historyIndexMap.delete(player.name);
+    let name = player.name;
+    if (args.length >= 1 && args[0] != '') {
+        name = args[0];
+    }
+    historyMap.delete(name);
+    historyIndexMap.delete(name);
     player.sendMessage(`§aEdit history cleared`);
 }
 function pos1(args, player, pos = null) {
