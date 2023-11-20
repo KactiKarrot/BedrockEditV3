@@ -1,6 +1,7 @@
 import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack } from "@minecraft/server";
 import { commands, pos1, pos2 } from "commands";
 import { addVector3, compareVector3, diffVector3, maxVector3, minVector3, subVector3, tellError } from "utils";
+import * as tool from "./tool";
 
 export const PREFIX = "./";
 
@@ -28,7 +29,15 @@ export const WAND_NAME = '§bBedrockEdit Wand';
 export const WAND_LORE = ['Sets Position 1 and Position 2 without commands', "Press 'Attack/Destroy' to set Position 1", "Press 'Use' to set Position 2"];
 export let wandEnabled = true;
 
+export let toolEnabled = true;
+
 export let welcomeMessage = true;
+
+// ADD BOOLEAN OPERATIONS (AND) (Minecraft Cad)
+
+system.beforeEvents.watchdogTerminate.subscribe(ev => {
+    ev.cancel = true;
+});
 
 world.afterEvents.worldInitialize.subscribe(() => {
     // scoreboard = world.scoreboard.getObjective("_beData")
@@ -95,6 +104,15 @@ export function setShowParticles() {
 }
 
 system.runInterval(() => {
+    if (toolEnabled) {
+        tool.tick();
+    }
+})
+
+system.runInterval(() => {
+
+    
+
     if (!showParticles) {
         return;
     }

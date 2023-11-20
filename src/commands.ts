@@ -171,9 +171,9 @@ let commands = [
         alias: "",
         function: inset,
         description: "Shrinks the selection in all directions",
-        extDescription: "Shrinks the selection in all directions\namount: Amount to shrink selection (defaults to 1)",
+        extDescription: "Shrinks the selection in all directions\namount: Amount to inset selection (defaults to 1)\n-h: Only inset horizontally\n-v: Only inset vertically",
         usage: [
-            "[amount: int]"
+            "[amount: int] [-hv]"
         ]
     },
     // outset
@@ -182,9 +182,9 @@ let commands = [
         alias: "",
         function: outset,
         description: "Expands the selection in all directions",
-        extDescription: "Expands the selection in all directions\namount: Amount to shrink selection (defaults to 1)",
+        extDescription: "Expands the selection in all directions\namount: Amount to outset selection (defaults to 1)\n-h: Only outset horizontally\n-v: Only outset vertically",
         usage: [
-            "[amount: int]"
+            "[amount: int] [-hv]"
         ]
     },
     // deselect
@@ -376,7 +376,7 @@ let commands = [
     },
 ]
 
-function help(args, player: Player) {
+function help(args: string[], player: Player) {
     if (args.length > 0 && isNaN(parseInt(args[0]))) {
         let found = false;
         let index;
@@ -422,11 +422,11 @@ function help(args, player: Player) {
     player.sendMessage(msg)
 }
 
-function version(args, player: Player) {
+function version(args: string[], player: Player) {
     player.sendMessage(`<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`);
 }
 
-function welcome(args, player: Player) {
+function welcome(args: string[], player: Player) {
     setWelcome();
     if (welcomeMessage) {
         player.sendMessage('§aWelcome message enabled')
@@ -435,13 +435,13 @@ function welcome(args, player: Player) {
     }
 }
 
-function wand(args, player: Player) {
+function wand(args: string[], player: Player) {
     if (args.length < 1) {
         (player.getComponent('minecraft:inventory') as EntityInventoryComponent).container.addItem(currentWand.clone());
         player.sendMessage(`You have been given ${WAND_NAME}`)
         return;
     }
-    if (args[0] = 'default') {
+    if (args[0] == 'default') {
         args[0] = 'minecraft:wooden_axe'
     }
     let itemType = ItemTypes.get(args[0]);
@@ -456,7 +456,7 @@ function wand(args, player: Player) {
     player.sendMessage(`§aSet wand item to ${currentWand.typeId}`)
 }
 
-function toggleWand(args, player: Player) {
+function toggleWand(args: string[], player: Player) {
     setWandEnabled()
     if (wandEnabled) {
         player.sendMessage('§aEdit wand enabled')
@@ -465,7 +465,7 @@ function toggleWand(args, player: Player) {
     }
 }
 
-function toggleOutline(args, player: Player) {
+function toggleOutline(args: string[], player: Player) {
     setShowParticles()
     if (showParticles) {
         player.sendMessage('§aOutline particles enabled')
@@ -474,7 +474,7 @@ function toggleOutline(args, player: Player) {
     }
 }
 
-function undo(args, player:Player) {
+function undo(args: string[], player:Player) {
     let name = player.name;
     let times = 1;
     if (args.length >= 1 && isNaN(parseInt(args[0]))) {
@@ -511,7 +511,7 @@ function undo(args, player:Player) {
     player.sendMessage(`§aUndid ${actions} actions (${changes} blocks)`)
 }
 
-function redo(args, player: Player) {
+function redo(args: string[], player: Player) {
     let name = player.name;
     let times = 1;
     if (args.length >= 1 && isNaN(parseInt(args[0]))) {
@@ -546,7 +546,7 @@ function redo(args, player: Player) {
     player.sendMessage(`§aRedid ${actions} actions (${changes} blocks)`)
 }
 
-function clearHistory(args, player: Player) {
+function clearHistory(args: string[], player: Player) {
     let name = player.name;
     if (args.length >= 1 && args[0] != '') {
         name = args[0];
@@ -556,7 +556,7 @@ function clearHistory(args, player: Player) {
     player.sendMessage(`§aEdit history cleared`)
 }
 
-function pos1(args, player: Player, pos: Vector3 = null) {
+function pos1(args: string[], player: Player, pos: Vector3 = null) {
     switch(args[0]) {
         case "position": {
             if (args.length < 4) {
@@ -647,7 +647,7 @@ function pos1(args, player: Player, pos: Vector3 = null) {
     }
 }
 
-function pos2(args, player: Player, pos: Vector3 = null) {
+function pos2(args: string[], player: Player, pos: Vector3 = null) {
     switch(args[0]) {
         case "position": {
             if (args.length < 4) {
@@ -738,7 +738,7 @@ function pos2(args, player: Player, pos: Vector3 = null) {
     }
 }
 
-function shift(args, player: Player) {
+function shift(args: string[], player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -809,7 +809,7 @@ function shift(args, player: Player) {
     player.sendMessage(`Shifted selection ${amount} blocks ${direction}`)
 }
 
-function shrink(args, player: Player) {
+function shrink(args: string[], player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -821,7 +821,7 @@ function shrink(args, player: Player) {
     let amount = 1
     if (args.length >= 1) {
         if (Number.isNaN(parseInt(args[0]))) {
-            tellError(player, `Invalid distance: '${args[0]}'`)
+            tellError(player, `Invalid amount: '${args[0]}'`)
             return
         }
         amount = parseInt(args[0]);
@@ -1068,7 +1068,7 @@ function shrink(args, player: Player) {
     player.sendMessage(`§aShrunk selection ${amount} blocks`);
 }
 
-function expand(args, player: Player) {
+function expand(args: string[], player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -1080,7 +1080,7 @@ function expand(args, player: Player) {
     let amount = 1
     if (args.length >= 1) {
         if (Number.isNaN(parseInt(args[0]))) {
-            tellError(player, `Invalid distance: '${args[0]}'`)
+            tellError(player, `Invalid amount: '${args[0]}'`)
             return
         }
         amount = parseInt(args[0]);
@@ -1305,21 +1305,142 @@ function expand(args, player: Player) {
     player.sendMessage(`§aExpanded selection ${amount} blocks`);
 }
 
-function inset(args, player: Player) {
-    
+function inset(args: string[], player: Player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let amount = 1
+    if (args.length >= 1) {
+        if (Number.isNaN(parseInt(args[0]))) {
+            tellError(player, `Invalid amount: '${args[0]}'`)
+            return
+        }
+        amount = parseInt(args[0]);
+    }
+    let h = true;
+    let v = true;
+    if (args.length >= 2 && args[1] != '') {
+        h = false;
+        v = false;
+        if (args[1].indexOf('h') >= 0) {
+            h = true;
+        }
+        if (args[1].indexOf('v') >= 0) {
+            v = true;
+        }
+    }
+    let p1 = pos1Map.get(player.name);
+    let p2 = pos2Map.get(player.name);
+    for (let i = 0; i < amount; i++) {
+        if (h) {
+            if (pos1Map.get(player.name).x > pos2Map.get(player.name).x) {
+                p1.x--;
+                p2.x++;
+            } else if (pos1Map.get(player.name).x < pos2Map.get(player.name).x) {
+                p1.x++;
+                p2.x--;
+            }
+            if (pos1Map.get(player.name).z > pos2Map.get(player.name).z) {
+                p1.z--;
+                p2.z++;
+            } else if (pos1Map.get(player.name).z < pos2Map.get(player.name).z) {
+                p1.z++;
+                p2.z--;
+            }
+        }
+        if (v) {
+            if (pos1Map.get(player.name).y > pos2Map.get(player.name).y) {
+                p1.y--;
+                p2.y++;
+            } else if (pos1Map.get(player.name).y < pos2Map.get(player.name).y) {
+                p1.y++;
+                p2.y--;
+            }
+        }
+    }
+    pos1Map.set(player.name, p1);
+    pos2Map.set(player.name, p2);
+    player.sendMessage(`§aSelection inset ${amount} blocks`);
 }
 
-function outset(args, player: Player) {
-    
+function outset(args: string[], player: Player) {
+    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
+    let amount = 1
+    if (args.length >= 1) {
+        if (Number.isNaN(parseInt(args[0]))) {
+            tellError(player, `Invalid amount: '${args[0]}'`)
+            return
+        }
+        amount = parseInt(args[0]);
+    }
+    let h = true;
+    let v = true;
+    if (args.length >= 2 && args[1] != '') {
+        h = false;
+        v = false;
+        if (args[1].indexOf('h') >= 0) {
+            h = true;
+        }
+        if (args[1].indexOf('v') >= 0) {
+            v = true;
+        }
+    }
+    let p1 = pos1Map.get(player.name);
+    let p2 = pos2Map.get(player.name);
+    for (let i = 0; i < amount; i++) {
+        if (h) {
+            if (pos1Map.get(player.name).x >= pos2Map.get(player.name).x) {
+                p1.x++;
+                p2.x--;
+            } else if (pos1Map.get(player.name).x < pos2Map.get(player.name).x) {
+                p1.x--;
+                p2.x++;
+            }
+            if (pos1Map.get(player.name).z >= pos2Map.get(player.name).z) {
+                p1.z++;
+                p2.z--;
+            } else if (pos1Map.get(player.name).z < pos2Map.get(player.name).z) {
+                p1.z--;
+                p2.z++;
+            }
+        }
+        if (v) {
+            if (pos1Map.get(player.name).y >= pos2Map.get(player.name).y) {
+                p1.y++;
+                p2.y--;
+            } else if (pos1Map.get(player.name).y < pos2Map.get(player.name).y) {
+                p1.y--;
+                p2.y++;
+            }
+        }
+    }
+    pos1Map.set(player.name, p1);
+    pos2Map.set(player.name, p2);
+    player.sendMessage(`§aSelection outset ${amount} blocks`);
 }
 
-function deselect(args, player: Player) {
+function deselect(args: string[], player: Player) {
     pos1Map.delete(player.name);
     pos2Map.delete(player.name);
     player.sendMessage(`§aDeselected region`);
 }
 
-function set(args, player: Player) {
+//Beds and doors don't work
+//signs, 
+//need directions
+function set(args: string[], player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -1331,7 +1452,12 @@ function set(args, player: Player) {
     let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
     let perm = getPermFromHand(player);
     if (args.length > 0 && args[0] != '') {
-        if (BlockPermutation.resolve(args[0]) == undefined) {
+        try {
+            if (BlockPermutation.resolve(args[0]) == undefined) {
+                tellError(player, `Block ${args[0]} not found`)
+                return;
+            }
+        } catch {
             tellError(player, `Block ${args[0]} not found`)
             return;
         }
@@ -1348,11 +1474,11 @@ function set(args, player: Player) {
     player.sendMessage(`§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${perm.type.id}`);
 }
 
-function remove(args, player: Player) {
+function remove(args: string[], player: Player) {
     set(["minecraft:air"], player);
 }
 
-function move(args, player: Player) {
+function move(args: string[], player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -1508,7 +1634,7 @@ function move(args, player: Player) {
     player.sendMessage(`§aMoved ${selSize.x * selSize.y * selSize.z} blocks ${direction}`)
 }
 
-function stack(args, player: Player) {
+function stack(args: string[], player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -1699,7 +1825,7 @@ function stack(args, player: Player) {
     player.sendMessage(`Stacked selection ${amount} times`)
 }
 
-function cube(args, player: Player) {
+function cube(args: string[], player: Player) {
     let mode = 'filled'
     let perm = getPermFromHand(player);
     if (args.length >= 1) {
@@ -1744,7 +1870,7 @@ function cube(args, player: Player) {
     player.sendMessage(`§aSuccessfully generated cube (${blockCount} blocks)`)
 }
 
-function walls(args, player: Player) {
+function walls(args: string[], player: Player) {
     let perm = getPermFromHand(player);
     if (args.length >= 1 && args[0] != '') {
         if (BlockTypes.get(args[0]) == undefined) {
@@ -1780,7 +1906,7 @@ function walls(args, player: Player) {
     player.sendMessage(`§aSuccessfully generated walls (${blockCount} blocks)`)
 }
 
-function cylinder(args, player: Player) {
+function cylinder(args: string[], player: Player) {
     let direction = 'ud';
     let mode = 'filled'
     let perm = getPermFromHand(player);
@@ -1894,7 +2020,7 @@ function cylinder(args, player: Player) {
     player.sendMessage(`§aSuccessfully generated cylinder (${blockCount} blocks)`);
 }
 
-function ellipsoid(args, player: Player) {
+function ellipsoid(args: string[], player: Player) {
     let mode = 'filled'
     let perm = getPermFromHand(player);
     if (args.length >= 1) {
@@ -1942,7 +2068,7 @@ function ellipsoid(args, player: Player) {
     player.sendMessage(`§aSuccessfully generated ellipsoid (${blockCount} blocks)`);
 }
 
-function dome(args, player: Player) {
+function dome(args: string[], player: Player) {
     let mode = 'filled'
     let perm = getPermFromHand(player);
     let fillFaces = true;
@@ -1996,7 +2122,7 @@ function dome(args, player: Player) {
     player.sendMessage(`§aSuccessfully generated a dome (${blockCount} blocks)`);
 }
 
-function pyramid(args, player: Player) {
+function pyramid(args: string[], player: Player) {
     let mode = 'filled'
     let perm = getPermFromHand(player);
     let fillFaces = true;
@@ -2051,7 +2177,7 @@ function pyramid(args, player: Player) {
 }
 
 // Doesn't work (offset is off and top of odd diameter has 2x2)
-function cone(args, player: Player) {
+function cone(args: string[], player: Player) {
     let mode = 'filled'
     let perm = getPermFromHand(player);
     let fillFaces = true;
