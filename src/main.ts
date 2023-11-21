@@ -36,7 +36,7 @@ export let welcomeMessage = true;
 // ADD BOOLEAN OPERATIONS (AND) (Minecraft Cad)
 
 system.beforeEvents.watchdogTerminate.subscribe(ev => {
-    ev.cancel = true;
+    ev.cancel = false;
 });
 
 world.afterEvents.worldInitialize.subscribe(() => {
@@ -162,7 +162,7 @@ system.runInterval(() => {
 world.beforeEvents.chatSend.subscribe((data) => {
     const player = data.sender;
     const msg = data.message; 
-    if (msg.substring(0, PREFIX.length) != PREFIX || !player.hasTag("BEAdmin")) {
+    if (msg.substring(0, PREFIX.length) != PREFIX || !player.hasTag("BEUser")) {
         return;
     }
 

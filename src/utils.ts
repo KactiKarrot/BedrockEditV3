@@ -2,8 +2,22 @@ import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventor
 import { historyMap, clipMap, HistoryEntry, historyIndexMap } from "main"
 
 
+export function tellMessage(player: Player, msg) {
+    player.sendMessage(msg);
+    world.getAllPlayers().forEach((e) => {
+        if (e.hasTag('BEAdmin') && player.id != e.id) {
+            e.sendMessage(msg);
+        }
+    });
+}
+
 export function tellError(player: Player, msg) {
-    player.sendMessage(`§cError: ${msg}`)
+    player.sendMessage(`§cError: ${msg}`);
+    world.getAllPlayers().forEach((e) => {
+        if (e.hasTag('BEAdmin') && player.id != e.id) {
+            e.sendMessage(msg);
+        }
+    });
 }
 
 export function getPermFromHand(player: Player): BlockPermutation {
