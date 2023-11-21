@@ -144,7 +144,7 @@ world.beforeEvents.chatSend.subscribe((data) => {
     });
 });
 world.beforeEvents.playerBreakBlock.subscribe((data) => {
-    if (data.player.hasTag("BEAdmin") && data.player.getComponent("minecraft:inventory").container.getItem(data.player.selectedSlot)?.typeId == currentWand.typeId) {
+    if (data.player.hasTag("BEUser") && data.player.getComponent("minecraft:inventory").container.getItem(data.player.selectedSlot)?.typeId == currentWand.typeId) {
         system.run(() => { pos1(['facing'], data.player); });
         data.cancel = true;
     }
@@ -152,13 +152,13 @@ world.beforeEvents.playerBreakBlock.subscribe((data) => {
 world.afterEvents.entityHitBlock.subscribe((data) => {
     if (data.damagingEntity.typeId == 'minecraft:player') {
         let player = data.damagingEntity;
-        if (player.hasTag("BEAdmin") && player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId == currentWand.typeId) {
+        if (player.hasTag("BEUser") && player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId == currentWand.typeId) {
             pos1(['facing'], player);
         }
     }
 });
 world.afterEvents.playerInteractWithBlock.subscribe((data) => {
-    if (data.player.hasTag("BEAdmin") && data.itemStack?.typeId == currentWand.typeId && !compareVector3(data.block.location, pos2Map.get(data.player.name))) {
+    if (data.player.hasTag("BEUser") && data.itemStack?.typeId == currentWand.typeId && !compareVector3(data.block.location, pos2Map.get(data.player.name))) {
         pos2(['facing'], data.player);
     }
 });
