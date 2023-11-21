@@ -35,9 +35,9 @@ export let welcomeMessage = true;
 
 // ADD BOOLEAN OPERATIONS (AND) (Minecraft Cad)
 
-system.beforeEvents.watchdogTerminate.subscribe(ev => {
-    ev.cancel = false;
-});
+system.beforeEvents.watchdogTerminate.subscribe((event) => {
+    event.cancel = true;
+  });
 
 world.afterEvents.worldInitialize.subscribe(() => {
     // scoreboard = world.scoreboard.getObjective("_beData")

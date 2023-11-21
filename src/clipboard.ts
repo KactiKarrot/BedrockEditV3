@@ -1,6 +1,6 @@
 import { Player, BlockPermutation, BlockStates } from "@minecraft/server";
 import { relPosMap, pos1Map, pos2Map, clipMap } from "main";
-import { addHistoryEntry, addToHistoryEntry, addVector3, ceilVector3, diffVector3, floorVector3, getClipAt, getClipSize, minVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, subVector3, tellError } from "utils";
+import { addHistoryEntry, addToHistoryEntry, addVector3, ceilVector3, diffVector3, floorVector3, getClipAt, getClipSize, minVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, subVector3, tellError, tellMessage } from "utils";
 
 export function copy(args, player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -28,7 +28,7 @@ export function copy(args, player: Player) {
             }
         }
     }
-    player.sendMessage(`§aCopied ${clipSize.x * clipSize.y * clipSize.z} blocks to clipboard`);
+    tellMessage(player, `§aCopied ${clipSize.x * clipSize.y * clipSize.z} blocks to clipboard`);
     return clipSize.x * clipSize.y * clipSize.z
 }
 
@@ -77,7 +77,7 @@ export function paste(args, player: Player) {
             }
         }
     }
-    player.sendMessage(`§aPasted ${clipSize.x * clipSize.y * clipSize.z} blocks from clipboard`);
+    tellMessage(player, `§aPasted ${clipSize.x * clipSize.y * clipSize.z} blocks from clipboard`);
 }
 
 export function rotate(args, player: Player) {
@@ -143,7 +143,7 @@ export function rotate(args, player: Player) {
         });
         clipMap.set(player.name, newClip);
     }
-    player.sendMessage(`§aRotated clipboard ${angle} degrees`);
+    tellMessage(player, `§aRotated clipboard ${angle} degrees`);
 }
 
 export function mirror(args, player: Player) {
@@ -199,5 +199,5 @@ export function mirror(args, player: Player) {
         });
     }
     clipMap.set(player.name, newClip);
-    player.sendMessage(`§aMirrored clipboard over the ${axis} axis`);
+    tellMessage(player, `§aMirrored clipboard over the ${axis} axis`);
 }

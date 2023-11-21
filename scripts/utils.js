@@ -1,7 +1,22 @@
-import { BlockPermutation, Direction, BlockTypes } from "@minecraft/server";
+import { BlockPermutation, Direction, BlockTypes, world, system } from "@minecraft/server";
 import { historyMap, clipMap, historyIndexMap } from "main";
+export function tellMessage(player, msg) {
+    player.sendMessage(msg);
+    world.getAllPlayers().forEach((e) => {
+        if (e.hasTag('BEAdmin') && player.id != e.id) {
+            e.sendMessage('§o§7' + player.name + ': ' + msg);
+        }
+    });
+}
 export function tellError(player, msg) {
     player.sendMessage(`§cError: ${msg}`);
+}
+export function sleep(ticks) {
+    return new Promise((resolve) => {
+        system.runTimeout(() => {
+            resolve('resolved');
+        }, ticks);
+    });
 }
 export function getPermFromHand(player) {
     let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId;
@@ -25,33 +40,37 @@ export function getPermFromHand(player) {
     if (typeId == 'minecraft:powder_snow_bucket') {
         typeId = 'minecraft:powder_snow';
     }
+    if (typeId.length >= 15 && typeId.substring(typeId.length - 5) == '_sign') {
+        typeId = typeId.substring(0, typeId.length - 4) + 'standing_sign';
+    }
     if (typeId == undefined || BlockTypes.get(typeId) == undefined) {
         typeId = "minecraft:air";
     }
     return BlockPermutation.resolve(typeId);
 }
 export function getPermFromStr(str, player) {
-    try {
-        if (BlockPermutation.resolve(str) == undefined) {
+    if (!str.includes('[')) {
+        try {
+            if (BlockPermutation.resolve(str) == undefined) {
+                return null;
+            }
+        }
+        catch {
             return null;
         }
-    }
-    catch {
-        return null;
-    }
-    if (str.indexOf('[') < 0) {
         return BlockPermutation.resolve(str);
     }
-    player.sendMessage(str.split('[')[0]);
     try {
         let states = str.split('[')[1].substring(0, str.split('[')[1].length - 1).split(',');
         let perm = BlockPermutation.resolve(str.split('[')[0]);
         states.forEach((e) => {
-            player.sendMessage(e);
-            if (e.indexOf('=') < 0 || e.split('=').length < 2) {
+            if (!e.includes('=') || e.split('=').length < 2) {
                 return null;
             }
             let state = e.split('=');
+            if (state[0].length <= 2) {
+                return null;
+            }
             state[0] = state[0].substring(1, state[0].length - 1);
             if (state[1] == 'true') {
                 perm = perm.withState(state[0], true);
@@ -75,6 +94,14 @@ export function getPermFromStr(str, player) {
 }
 export function setBlockAt(player, pos, perm) {
     addToHistoryEntry(player.name, {
+        pos: pos,
+        pre: player.dimension.getBlock(pos).permutation.clone(),
+        post: perm.clone()
+    });
+    player.dimension.getBlock(pos).setPermutation(perm);
+}
+export function forceSetBlockAt(player, pos, perm) {
+    forceAddToHistoryEntry(player.name, {
         pos: pos,
         pre: player.dimension.getBlock(pos).permutation.clone(),
         post: perm.clone()
@@ -213,6 +240,161 @@ export function rotatePerm(perm) {
     }
     return perm;
 }
+export function flipPerm(perm, axis) {
+    if (axis.includes('x')) {
+        switch (perm.getState('weirdo_direction')) {
+            case 0: {
+                return perm.withState('weirdo_direction', 1);
+            }
+            case 1: {
+                return perm.withState('weirdo_direction', 0);
+            }
+        }
+        switch (perm.getState('coral_direction')) {
+            case 0: {
+                return perm.withState('coral_direction', 1);
+            }
+            case 1: {
+                return perm.withState('coral_direction', 0);
+            }
+        }
+        switch (perm.getState('direction')) {
+            case 1: {
+                return perm.withState('direction', 3);
+            }
+            case 3: {
+                return perm.withState('direction', 1);
+            }
+        }
+        switch (perm.getState('facing_direction')) {
+            case 'east': {
+                return perm.withState('facing_direction', 'west');
+            }
+            case 'west': {
+                return perm.withState('facing_direction', 'west');
+            }
+        }
+        switch (perm.getState('lever_direction')) {
+            case 'east': {
+                return perm.withState('facing_direction', 'west');
+            }
+            case 'west': {
+                return perm.withState('facing_direction', 'west');
+            }
+        }
+        switch (perm.getState('rail_direction')) {
+            case 2: {
+                return perm.withState('rail_direction', 3);
+            }
+            case 3: {
+                return perm.withState('rail_direction', 2);
+            }
+            case 4: {
+                return perm.withState('rail_direction', 5);
+            }
+            case 5: {
+                return perm.withState('rail_direction', 4);
+            }
+            case 6: {
+                return perm.withState('rail_direction', 7);
+            }
+            case 7: {
+                return perm.withState('rail_direction', 6);
+            }
+            case 8: {
+                return perm.withState('rail_direction', 9);
+            }
+            case 9: {
+                return perm.withState('rail_direction', 8);
+            }
+        }
+        switch (perm.getState('torch_facing_direction')) {
+            case 'east': {
+                return perm.withState('torch_facing_direction', 'west');
+            }
+            case 'west': {
+                return perm.withState('torch_facing_direction', 'east');
+            }
+        }
+    }
+    if (axis.includes('z')) {
+        switch (perm.getState('weirdo_direction')) {
+            case 2: {
+                return perm.withState('weirdo_direction', 3);
+            }
+            case 3: {
+                return perm.withState('weirdo_direction', 2);
+            }
+        }
+        switch (perm.getState('coral_direction')) {
+            case 2: {
+                return perm.withState('coral_direction', 3);
+            }
+            case 3: {
+                return perm.withState('coral_direction', 2);
+            }
+        }
+        switch (perm.getState('direction')) {
+            case 0: {
+                return perm.withState('direction', 2);
+            }
+            case 2: {
+                return perm.withState('direction', 0);
+            }
+        }
+        switch (perm.getState('facing_direction')) {
+            case 'north': {
+                return perm.withState('facing_direction', 'south');
+            }
+            case 'south': {
+                return perm.withState('facing_direction', 'north');
+            }
+        }
+        switch (perm.getState('lever_direction')) {
+            case 'north': {
+                return perm.withState('lever_direction', 'south');
+            }
+            case 'south': {
+                return perm.withState('lever_direction', 'north');
+            }
+        }
+        switch (perm.getState('rail_direction')) {
+            case 2: {
+                return perm.withState('rail_direction', 3);
+            }
+            case 3: {
+                return perm.withState('rail_direction', 2);
+            }
+            case 4: {
+                return perm.withState('rail_direction', 5);
+            }
+            case 5: {
+                return perm.withState('rail_direction', 4);
+            }
+            case 6: {
+                return perm.withState('rail_direction', 9);
+            }
+            case 7: {
+                return perm.withState('rail_direction', 8);
+            }
+            case 8: {
+                return perm.withState('rail_direction', 7);
+            }
+            case 9: {
+                return perm.withState('rail_direction', 6);
+            }
+        }
+        switch (perm.getState('torch_facing_direction')) {
+            case 'north': {
+                return perm.withState('torch_facing_direction', 'south');
+            }
+            case 'south': {
+                return perm.withState('torch_facing_direction', 'north');
+            }
+        }
+    }
+    return perm;
+}
 // Return east is default case
 export function getPrimaryDirection(a) {
     if (a.y <= -0.75) {
@@ -330,7 +512,12 @@ export function diffVector3(a, b) {
     return sum;
 }
 export function compareVector3(a, b) {
-    if (a != undefined && b != undefined && a.x == b.x && a.y == b.y && a.z == b.z) {
+    // if (a != undefined && b != undefined && a.x == b.x && a.y == b.y && a.z == b.z) {
+    //     return true
+    // } else {
+    //     return false;
+    // }
+    if (JSON.stringify(a) == JSON.stringify(b)) {
         return true;
     }
     else {
@@ -438,17 +625,21 @@ export function addHistoryEntry(player) {
 //Precondition, entry exists
 export function addToHistoryEntry(player, entry) {
     let index = -1;
-    let result = false;
-    historyMap.get(player)[0].forEach((e, i) => {
-        if (compareVector3(e.pos, entry.pos)) {
-            result = true;
-            index = i;
-        }
-    });
-    if (result) {
+    // let result = false;
+    // historyMap.get(player)[0].forEach((e, i) => {
+    //     if (compareVector3(e.pos, entry.pos)) {
+    //         result =  true;
+    //         index = i;
+    //     }
+    // })
+    index = historyMap.get(player)[0].findIndex((e) => e.pos.x == entry.pos.x && e.pos.y == entry.pos.y && e.pos.z == entry.pos.z);
+    if (index >= 0) {
         historyMap.get(player)[0][index].post = entry.post;
     }
     else {
         historyMap.get(player)[0].unshift(entry);
     }
+}
+export function forceAddToHistoryEntry(player, entry) {
+    historyMap.get(player)[0].unshift(entry);
 }

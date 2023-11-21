@@ -19,8 +19,8 @@ export let wandEnabled = true;
 export let toolEnabled = true;
 export let welcomeMessage = true;
 // ADD BOOLEAN OPERATIONS (AND) (Minecraft Cad)
-system.beforeEvents.watchdogTerminate.subscribe(ev => {
-    ev.cancel = true;
+system.beforeEvents.watchdogTerminate.subscribe((event) => {
+    event.cancel = true;
 });
 world.afterEvents.worldInitialize.subscribe(() => {
     // scoreboard = world.scoreboard.getObjective("_beData")
@@ -124,7 +124,7 @@ system.runInterval(() => {
 world.beforeEvents.chatSend.subscribe((data) => {
     const player = data.sender;
     const msg = data.message;
-    if (msg.substring(0, PREFIX.length) != PREFIX || !player.hasTag("BEAdmin")) {
+    if (msg.substring(0, PREFIX.length) != PREFIX || !player.hasTag("BEUser")) {
         return;
     }
     data.cancel = true;

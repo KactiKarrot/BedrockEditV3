@@ -2,7 +2,7 @@ import { BlockPermutation, BlockTypes, Direction, ItemTypes, world } from "@mine
 import { ShapeModes, generateCone, generateDome, generateEllipse, generateEllipsoid, generatePyramid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
 import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setShowParticles, setWand, setWandEnabled, setWelcome, showParticles, wandEnabled, welcomeMessage } from "main";
-import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPermFromStr, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
+import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, forceSetBlockAt, getHistory, getPermFromHand, getPermFromStr, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, sleep, tellError, tellMessage } from "utils";
 let commands = [
     // help
     {
@@ -398,8 +398,8 @@ function help(args, player) {
             commands[index].usage.forEach((e) => {
                 msg += `\n- ${PREFIX}${commands[index].name} ${e}`;
             });
-            // player.sendMessage(msg);
-            player.sendMessage(msg);
+            // tellMessage(player, msg);
+            tellMessage(player, msg);
             return;
         }
     }
@@ -417,25 +417,25 @@ function help(args, player) {
             break;
         }
     }
-    // player.sendMessage(`§7- ${PREFIX}help: §bLists all commands and what they do\n§7- ${PREFIX}copy: §bCopies a region to the player's clipboard\n§7- ${PREFIX}cut: §bCuts a region to the player's clipboard\n§7- ${PREFIX}paste: §bPastes a region from the player's clipboard\n§7- ${PREFIX}pos1: §bSaves your current position to pos1\n§7- ${PREFIX}pos2: §bSaves your current position to pos2`)
-    player.sendMessage(msg);
+    // tellMessage(player, `§7- ${PREFIX}help: §bLists all commands and what they do\n§7- ${PREFIX}copy: §bCopies a region to the player's clipboard\n§7- ${PREFIX}cut: §bCuts a region to the player's clipboard\n§7- ${PREFIX}paste: §bPastes a region from the player's clipboard\n§7- ${PREFIX}pos1: §bSaves your current position to pos1\n§7- ${PREFIX}pos2: §bSaves your current position to pos2`)
+    tellMessage(player, msg);
 }
 function version(args, player) {
-    player.sendMessage(`<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`);
+    tellMessage(player, `<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`);
 }
 function welcome(args, player) {
     setWelcome();
     if (welcomeMessage) {
-        player.sendMessage('§aWelcome message enabled');
+        tellMessage(player, '§aWelcome message enabled');
     }
     else {
-        player.sendMessage('§aWelcome message disabled');
+        tellMessage(player, '§aWelcome message disabled');
     }
 }
 function wand(args, player) {
     if (args.length < 1) {
         player.getComponent('minecraft:inventory').container.addItem(currentWand.clone());
-        player.sendMessage(`You have been given ${WAND_NAME}`);
+        tellMessage(player, `You have been given ${WAND_NAME}`);
         return;
     }
     if (args[0] == 'default') {
@@ -450,24 +450,24 @@ function wand(args, player) {
     // scoreboard.setScore("wand." + itemType.id, 0);
     world.setDynamicProperty('wand', itemType.id);
     setWand();
-    player.sendMessage(`§aSet wand item to ${currentWand.typeId}`);
+    tellMessage(player, `§aSet wand item to ${currentWand.typeId}`);
 }
 function toggleWand(args, player) {
     setWandEnabled();
     if (wandEnabled) {
-        player.sendMessage('§aEdit wand enabled');
+        tellMessage(player, '§aEdit wand enabled');
     }
     else {
-        player.sendMessage('§aEdit wand disabled');
+        tellMessage(player, '§aEdit wand disabled');
     }
 }
 function toggleOutline(args, player) {
     setShowParticles();
     if (showParticles) {
-        player.sendMessage('§aOutline particles enabled');
+        tellMessage(player, '§aOutline particles enabled');
     }
     else {
-        player.sendMessage('§aOutline particles disabled');
+        tellMessage(player, '§aOutline particles disabled');
     }
 }
 function undo(args, player) {
@@ -504,7 +504,7 @@ function undo(args, player) {
         historyIndexMap.set(name, historyIndexMap.get(name) + 1);
         actions++;
     }
-    player.sendMessage(`§aUndid ${actions} actions (${changes} blocks)`);
+    tellMessage(player, `§aUndid ${actions} actions (${changes} blocks)`);
 }
 function redo(args, player) {
     let name = player.name;
@@ -537,7 +537,7 @@ function redo(args, player) {
         }
         actions++;
     }
-    player.sendMessage(`§aRedid ${actions} actions (${changes} blocks)`);
+    tellMessage(player, `§aRedid ${actions} actions (${changes} blocks)`);
 }
 function clearHistory(args, player) {
     let name = player.name;
@@ -546,7 +546,7 @@ function clearHistory(args, player) {
     }
     historyMap.delete(name);
     historyIndexMap.delete(name);
-    player.sendMessage(`§aEdit history cleared`);
+    tellMessage(player, `§aEdit history cleared`);
 }
 function pos1(args, player, pos = null) {
     switch (args[0]) {
@@ -631,10 +631,10 @@ function pos1(args, player, pos = null) {
         pos1Map.set(player.name, pos);
         if (pos2Map.has(player.name)) {
             let diff = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos, pos2Map.get(player.name)));
-            player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
+            tellMessage(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
         }
         else {
-            player.sendMessage(`§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+            tellMessage(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
         }
     }
 }
@@ -721,10 +721,10 @@ function pos2(args, player, pos = null) {
         pos2Map.set(player.name, pos);
         if (pos1Map.has(player.name)) {
             let diff = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos, pos1Map.get(player.name)));
-            player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
+            tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
         }
         else {
-            player.sendMessage(`§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+            tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
         }
     }
 }
@@ -798,7 +798,7 @@ function shift(args, player) {
     }
     pos1Map.set(player.name, shiftVector3(pos1Map.get(player.name), direction, amount));
     pos2Map.set(player.name, shiftVector3(pos2Map.get(player.name), direction, amount));
-    player.sendMessage(`Shifted selection ${amount} blocks ${direction}`);
+    tellMessage(player, `Shifted selection ${amount} blocks ${direction}`);
 }
 function shrink(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -1064,7 +1064,7 @@ function shrink(args, player) {
             break;
         }
     }
-    player.sendMessage(`§aShrunk selection ${amount} blocks`);
+    tellMessage(player, `§aShrunk selection ${amount} blocks`);
 }
 function expand(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -1308,7 +1308,7 @@ function expand(args, player) {
             break;
         }
     }
-    player.sendMessage(`§aExpanded selection ${amount} blocks`);
+    tellMessage(player, `§aExpanded selection ${amount} blocks`);
 }
 function inset(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -1373,7 +1373,7 @@ function inset(args, player) {
     }
     pos1Map.set(player.name, p1);
     pos2Map.set(player.name, p2);
-    player.sendMessage(`§aSelection inset ${amount} blocks`);
+    tellMessage(player, `§aSelection inset ${amount} blocks`);
 }
 function outset(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -1438,17 +1438,15 @@ function outset(args, player) {
     }
     pos1Map.set(player.name, p1);
     pos2Map.set(player.name, p2);
-    player.sendMessage(`§aSelection outset ${amount} blocks`);
+    tellMessage(player, `§aSelection outset ${amount} blocks`);
 }
 function deselect(args, player) {
     pos1Map.delete(player.name);
     pos2Map.delete(player.name);
-    player.sendMessage(`§aDeselected region`);
+    tellMessage(player, `§aDeselected region`);
 }
-//Beds and doors don't work
-//signs, 
-//need directions
-function set(args, player) {
+//Beds don't work (Can't actually determine bed color)
+async function set(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -1466,15 +1464,20 @@ function set(args, player) {
             return;
         }
     }
+    let count = 0;
     addHistoryEntry(player.name);
     for (let x = 0; x < selSize.x; x++) {
         for (let y = 0; y < selSize.y; y++) {
             for (let z = 0; z < selSize.z; z++) {
-                setBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm.clone());
+                forceSetBlockAt(player, addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z }), perm.clone());
+                count++;
+                if (count % 5000 == 0) {
+                    await sleep(1);
+                }
             }
         }
     }
-    player.sendMessage(`§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${perm.type.id}`);
+    tellMessage(player, `§aChanged ${selSize.x * selSize.y * selSize.z} blocks to ${perm.type.id}`);
 }
 function remove(args, player) {
     set(["minecraft:air"], player);
@@ -1587,7 +1590,7 @@ function move(args, player) {
     }
     pos1Map.set(player.name, shiftVector3(pos1Map.get(player.name), direction, amount));
     pos2Map.set(player.name, shiftVector3(pos2Map.get(player.name), direction, amount));
-    player.sendMessage(`§aMoved ${selSize.x * selSize.y * selSize.z} blocks ${direction}`);
+    tellMessage(player, `§aMoved ${selSize.x * selSize.y * selSize.z} blocks ${direction}`);
 }
 function stack(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -1729,7 +1732,7 @@ function stack(args, player) {
             }
         }
     }
-    player.sendMessage(`Stacked selection ${amount} times`);
+    tellMessage(player, `Stacked selection ${amount} times`);
 }
 function cube(args, player) {
     let mode = 'filled';
@@ -1769,7 +1772,7 @@ function cube(args, player) {
             }
         }
     }
-    player.sendMessage(`§aSuccessfully generated cube (${blockCount} blocks)`);
+    tellMessage(player, `§aSuccessfully generated cube (${blockCount} blocks)`);
 }
 function walls(args, player) {
     let perm = getPermFromHand(player);
@@ -1801,7 +1804,7 @@ function walls(args, player) {
             }
         }
     }
-    player.sendMessage(`§aSuccessfully generated walls (${blockCount} blocks)`);
+    tellMessage(player, `§aSuccessfully generated walls (${blockCount} blocks)`);
 }
 function cylinder(args, player) {
     let direction = 'ud';
@@ -1911,7 +1914,7 @@ function cylinder(args, player) {
             }
         }
     }
-    player.sendMessage(`§aSuccessfully generated cylinder (${blockCount} blocks)`);
+    tellMessage(player, `§aSuccessfully generated cylinder (${blockCount} blocks)`);
 }
 function ellipsoid(args, player) {
     let mode = 'filled';
@@ -1953,7 +1956,7 @@ function ellipsoid(args, player) {
             }
         }
     }
-    player.sendMessage(`§aSuccessfully generated ellipsoid (${blockCount} blocks)`);
+    tellMessage(player, `§aSuccessfully generated ellipsoid (${blockCount} blocks)`);
 }
 function dome(args, player) {
     let mode = 'filled';
@@ -2001,7 +2004,7 @@ function dome(args, player) {
             }
         }
     }
-    player.sendMessage(`§aSuccessfully generated a dome (${blockCount} blocks)`);
+    tellMessage(player, `§aSuccessfully generated a dome (${blockCount} blocks)`);
 }
 function pyramid(args, player) {
     let mode = 'filled';
@@ -2049,7 +2052,7 @@ function pyramid(args, player) {
             }
         }
     }
-    player.sendMessage(`§aSuccessfully generated pyramid (${blockCount} blocks)`);
+    tellMessage(player, `§aSuccessfully generated pyramid (${blockCount} blocks)`);
 }
 // Doesn't work (offset is off and top of odd diameter has 2x2)
 function cone(args, player) {
@@ -2098,6 +2101,6 @@ function cone(args, player) {
             }
         }
     }
-    player.sendMessage(`§aSuccessfully generated a cone (${blockCount} blocks)`);
+    tellMessage(player, `§aSuccessfully generated a cone (${blockCount} blocks)`);
 }
 export { commands, pos1, pos2 };

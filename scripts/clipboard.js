@@ -1,6 +1,6 @@
 import { BlockPermutation } from "@minecraft/server";
 import { relPosMap, pos1Map, pos2Map, clipMap } from "main";
-import { addHistoryEntry, addToHistoryEntry, addVector3, diffVector3, floorVector3, getClipAt, getClipSize, minVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, subVector3, tellError } from "utils";
+import { addHistoryEntry, addToHistoryEntry, addVector3, diffVector3, floorVector3, getClipAt, getClipSize, minVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, subVector3, tellError, tellMessage } from "utils";
 export function copy(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
@@ -20,7 +20,7 @@ export function copy(args, player) {
             }
         }
     }
-    player.sendMessage(`§aCopied ${clipSize.x * clipSize.y * clipSize.z} blocks to clipboard`);
+    tellMessage(player, `§aCopied ${clipSize.x * clipSize.y * clipSize.z} blocks to clipboard`);
     return clipSize.x * clipSize.y * clipSize.z;
 }
 export function cut(args, player) {
@@ -67,7 +67,7 @@ export function paste(args, player) {
             }
         }
     }
-    player.sendMessage(`§aPasted ${clipSize.x * clipSize.y * clipSize.z} blocks from clipboard`);
+    tellMessage(player, `§aPasted ${clipSize.x * clipSize.y * clipSize.z} blocks from clipboard`);
 }
 export function rotate(args, player) {
     if (args.length < 1) {
@@ -125,7 +125,7 @@ export function rotate(args, player) {
         });
         clipMap.set(player.name, newClip);
     }
-    player.sendMessage(`§aRotated clipboard ${angle} degrees`);
+    tellMessage(player, `§aRotated clipboard ${angle} degrees`);
 }
 export function mirror(args, player) {
     if (args.length < 1) {
@@ -176,5 +176,5 @@ export function mirror(args, player) {
         });
     }
     clipMap.set(player.name, newClip);
-    player.sendMessage(`§aMirrored clipboard over the ${axis} axis`);
+    tellMessage(player, `§aMirrored clipboard over the ${axis} axis`);
 }
