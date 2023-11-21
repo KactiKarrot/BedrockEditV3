@@ -30,6 +30,49 @@ export function getPermFromHand(player) {
     }
     return BlockPermutation.resolve(typeId);
 }
+export function getPermFromStr(str, player) {
+    try {
+        if (BlockPermutation.resolve(str) == undefined) {
+            return null;
+        }
+    }
+    catch {
+        return null;
+    }
+    if (str.indexOf('[') < 0) {
+        return BlockPermutation.resolve(str);
+    }
+    player.sendMessage(str.split('[')[0]);
+    try {
+        let states = str.split('[')[1].substring(0, str.split('[')[1].length - 1).split(',');
+        let perm = BlockPermutation.resolve(str.split('[')[0]);
+        states.forEach((e) => {
+            player.sendMessage(e);
+            if (e.indexOf('=') < 0 || e.split('=').length < 2) {
+                return null;
+            }
+            let state = e.split('=');
+            state[0] = state[0].substring(1, state[0].length - 1);
+            if (state[1] == 'true') {
+                perm = perm.withState(state[0], true);
+            }
+            else if (state[1] == 'false') {
+                perm = perm.withState(state[0], false);
+            }
+            else if (!isNaN(parseInt(state[1]))) {
+                perm = perm.withState(state[0], parseInt(state[1]));
+            }
+            else {
+                state[1] = state[1].substring(1, state[1].length - 1);
+                perm = perm.withState(state[0], state[1]);
+            }
+        });
+        return perm;
+    }
+    catch {
+        return null;
+    }
+}
 export function setBlockAt(player, pos, perm) {
     addToHistoryEntry(player.name, {
         pos: pos,

@@ -2,7 +2,7 @@ import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPe
 import { ShapeModes, generateCone, generateDome, generateEllipse, generateEllipsoid, generatePyramid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
 import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setShowParticles, setWand, setWandEnabled, setWelcome, showParticles, wandEnabled, welcomeMessage } from "main";
-import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
+import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, getHistory, getPermFromHand, getPermFromStr, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, tellError } from "utils";
 
 let commands = [
     // help
@@ -1451,17 +1451,12 @@ function set(args: string[], player: Player) {
     }
     let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
     let perm = getPermFromHand(player);
-    if (args.length > 0 && args[0] != '') {
-        try {
-            if (BlockPermutation.resolve(args[0]) == undefined) {
-                tellError(player, `Block ${args[0]} not found`)
-                return;
-            }
-        } catch {
+    if (args.length > 0) {
+        perm = getPermFromStr(args[0], player);
+        if (perm == null) {
             tellError(player, `Block ${args[0]} not found`)
             return;
         }
-        perm = BlockPermutation.resolve(args[0]);
     }
     addHistoryEntry(player.name);
     for (let x = 0; x < selSize.x; x++) {
