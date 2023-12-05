@@ -208,7 +208,7 @@ world.afterEvents.playerInteractWithBlock.subscribe((data) => {
 })
 
 world.afterEvents.playerSpawn.subscribe((data) => {
-    if (welcomeMessage) {
+    if (welcomeMessage && data.initialSpawn) {
         data.player.sendMessage(`<§bBedrockEdit§r> §aBedrockEdit §5v${VERSION}§a is installed!`)
         data.player.sendMessage(`<§bBedrockEdit§r> §aTo get started, run ${PREFIX}help`)
     }

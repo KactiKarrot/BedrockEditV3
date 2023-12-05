@@ -102,13 +102,18 @@ export function getPermFromStr(str: string, player: Player): BlockPermutation {
     }    
 }
 
-export function setBlockAt(player: Player, pos: Vector3, perm: BlockPermutation) {
+export function setBlockAt(player: Player, pos: Vector3, perm: BlockPermutation): boolean {
     addToHistoryEntry(player.name, {
         pos: pos,
         pre: player.dimension.getBlock(pos).permutation.clone(),
         post: perm.clone()
     });
-    player.dimension.getBlock(pos).setPermutation(perm);
+    if (player.dimension.getBlock(pos).isValid()) {
+        player.dimension.getBlock(pos).setPermutation(perm);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 export function forceSetBlockAt(player: Player, pos: Vector3, perm: BlockPermutation) {

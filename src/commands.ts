@@ -477,10 +477,10 @@ function toggleOutline(args: string[], player: Player) {
 function undo(args: string[], player:Player) {
     let name = player.name;
     let times = 1;
-    if (args.length >= 1 && isNaN(parseInt(args[0]))) {
+    if (args.length >= 1 && isNaN(parseInt(args[0])) && args[0] != '') {
         times = parseInt(args[0]);
     }
-    if (isNaN(parseInt(args[0]))) {
+    if (args.length >= 1 && isNaN(parseInt(args[0])) && args[0] != '') {
         tellError(player, `Invalid number: ${args[0]}`)
     }
     if (args.length >= 2 && args[1] != '') {
@@ -514,10 +514,10 @@ function undo(args: string[], player:Player) {
 function redo(args: string[], player: Player) {
     let name = player.name;
     let times = 1;
-    if (args.length >= 1 && isNaN(parseInt(args[0]))) {
+    if (args.length >= 1 && isNaN(parseInt(args[0])) && args[0] != '') {
         times = parseInt(args[0]);
     }
-    if (isNaN(parseInt(args[0]))) {
+    if (args.length >= 1 && isNaN(parseInt(args[0])) && args[0] != '') {
         tellError(player, `Invalid number: ${args[0]}`)
     }
     if (args.length >= 2 && args[1] != '') {
@@ -806,7 +806,7 @@ function shift(args: string[], player: Player) {
     }
     pos1Map.set(player.name, shiftVector3(pos1Map.get(player.name), direction, amount));
     pos2Map.set(player.name, shiftVector3(pos2Map.get(player.name), direction, amount));
-    tellMessage(player, `Shifted selection ${amount} blocks ${direction}`)
+    tellMessage(player, `§aShifted selection ${amount} blocks ${direction}`)
 }
 
 function shrink(args: string[], player: Player) {
@@ -1632,7 +1632,7 @@ function move(args: string[], player: Player) {
     tellMessage(player, `§aMoved ${selSize.x * selSize.y * selSize.z} blocks ${direction}`)
 }
 
-function stack(args: string[], player: Player) {
+async function stack(args: string[], player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;
@@ -1654,7 +1654,7 @@ function stack(args: string[], player: Player) {
             tellError(player, `Invalid amount: '${args[0]}'`)
             return
         }
-        amount = parseInt(args[0]) + 1;
+        amount = parseInt(args[0]);
     }
     let direction = getPrimaryDirection(player.getViewDirection());
     if (args.length >= 2) {
@@ -1725,10 +1725,15 @@ function stack(args: string[], player: Player) {
     )
     //#endregion Args
 
+    let count = 0;
     addHistoryEntry(player.name);
     for (let x = 0; x < selSize.x; x++) {
         for (let y = 0; y < selSize.y; y++) {
             for (let z = 0; z < selSize.z; z++) {
+                count++;
+                if (count % 1000 == 0) {
+                    await sleep(2);
+                }
                 if (!air && player.dimension.getBlock(
                     addVector3(
                         minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
@@ -1743,28 +1748,33 @@ function stack(args: string[], player: Player) {
                         {x: x, y: y, z: z}
                     )
                 ).permutation.clone()
-                addToHistoryEntry(player.name, {
-                    pos: addVector3(
-                        minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
-                        {x: x, y: y, z: z}
-                    ),
-                    pre: player.dimension.getBlock(addVector3(
-                        minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
-                        {x: x, y: y, z: z}
-                    )).permutation.clone(),
-                    post: BlockPermutation.resolve("minecraft:air")
-                })
-                player.dimension.getBlock(addVector3(
-                    minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
-                    {x: x, y: y, z: z}
-                )).setPermutation(BlockPermutation.resolve("minecraft:air"))
+                // addToHistoryEntry(player.name, {
+                //     pos: addVector3(
+                //         minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
+                //         {x: x, y: y, z: z}
+                //     ),
+                //     pre: player.dimension.getBlock(addVector3(
+                //         minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
+                //         {x: x, y: y, z: z}
+                //     )).permutation.clone(),
+                //     post: BlockPermutation.resolve("minecraft:air")
+                // })
+                // player.dimension.getBlock(addVector3(
+                //     minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
+                //     {x: x, y: y, z: z}
+                // )).setPermutation(BlockPermutation.resolve("minecraft:air"))
             }
         }
     }
+    count =  0;
     for (let i = 0; i < amount; i++) {
         for (let x = 0; x < selSize.x; x++) {
             for (let y = 0; y < selSize.y; y++) {
                 for (let z = 0; z < selSize.z; z++) {
+                    count++;
+                    if (count % 1000 == 0) {
+                        await sleep(2);
+                    }
                     if (sel[x][y][z] == undefined || sel[x][y][z] == null) {
                         continue;
                     }
@@ -1772,55 +1782,56 @@ function stack(args: string[], player: Player) {
                     switch(direction) {
                         case Direction.North: {}
                         case Direction.South: {
-                            distance = (selSize.z + offset) * i;
+                            distance = (selSize.z + offset) * (i + 1);
                             break;
                         }
                         case Direction.East: {}
                         case Direction.West: {
-                            distance = (selSize.x + offset) * i;
+                            distance = (selSize.x + offset) * (i + 1);
                             break;
                         }
                         case Direction.Up: {}
                         case Direction.Down: {
-                            distance = (selSize.y + offset) * i;
+                            distance = (selSize.y + offset) * (i + 1);
                             break;
                         }
                     }
-                    addToHistoryEntry(player.name, {
-                        pos: shiftVector3(
-                            addVector3(
-                                minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
-                                {x: x, y: y, z: z}
-                            ),
-                            direction,
-                            distance
-                        ),
-                        pre: player.dimension.getBlock(shiftVector3(
-                            addVector3(
-                                minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
-                                {x: x, y: y, z: z}
-                            ),
-                            direction,
-                            distance
-                        )).permutation.clone(),
-                        post: sel[x][y][z].clone()
-                    })
-                    player.dimension.getBlock(
-                        shiftVector3(
-                            addVector3(
-                                minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
-                                {x: x, y: y, z: z}
-                            ),
-                            direction,
-                            distance
-                        )
-                    ).setPermutation(sel[x][y][z].clone());
+                    forceSetBlockAt(player, shiftVector3(addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), {x: x, y: y, z: z}), direction, distance), sel[x][y][z].clone())
+                    // addToHistoryEntry(player.name, {
+                    //     pos: shiftVector3(
+                    //         addVector3(
+                    //             minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
+                    //             {x: x, y: y, z: z}
+                    //         ),
+                    //         direction,
+                    //         distance
+                    //     ),
+                    //     pre: player.dimension.getBlock(shiftVector3(
+                    //         addVector3(
+                    //             minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
+                    //             {x: x, y: y, z: z}
+                    //         ),
+                    //         direction,
+                    //         distance
+                    //     )).permutation.clone(),
+                    //     post: sel[x][y][z].clone()
+                    // })
+                    // player.dimension.getBlock(
+                    //     shiftVector3(
+                    //         addVector3(
+                    //             minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
+                    //             {x: x, y: y, z: z}
+                    //         ),
+                    //         direction,
+                    //         distance
+                    //     )
+                    // ).setPermutation(sel[x][y][z].clone());
                     
                 }
             }
         }
     }
-    tellMessage(player, `Stacked selection ${amount} times`)
+    tellMessage(player, `§aStacked selection ${amount} times`)
 }
 
 function cube(args: string[], player: Player) {

@@ -1,6 +1,6 @@
 import { Player, BlockPermutation, BlockStates } from "@minecraft/server";
 import { relPosMap, pos1Map, pos2Map, clipMap } from "main";
-import { addHistoryEntry, addToHistoryEntry, addVector3, ceilVector3, diffVector3, floorVector3, getClipAt, getClipSize, minVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, subVector3, tellError, tellMessage } from "utils";
+import { addHistoryEntry, addToHistoryEntry, addVector3, ceilVector3, diffVector3, floorVector3, getClipAt, getClipSize, minVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, sleep, subVector3, tellError, tellMessage } from "utils";
 
 export function copy(args, player: Player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -51,7 +51,7 @@ export function cut(args, player: Player) {
     }
 }
 
-export function paste(args, player: Player) {
+export async function paste(args, player: Player) {
     if (!clipMap.has(player.name)) {
         tellError(player, `Nothing in clipboard`);
         return;
@@ -66,9 +66,14 @@ export function paste(args, player: Player) {
     let clipSize = getClipSize(player.name);
     // Creates new entry in history map
     addHistoryEntry(player.name);
+    let count = 0;
     for (let x = 0; x < clipSize.x; x++) {
         for (let y = 0; y < clipSize.y; y++) {
             for (let z = 0; z < clipSize.z; z++) {
+                count++;
+                if (count % 1000 == 0) {
+                    await sleep(1);
+                }
                 let pos = addVector3(addVector3(relPosMap.get(player.name), floorVector3(player.location)), {x: x, y: y, z: z});
                 // Adds current world position, blockstate before paste, and blockstate after paste to history map entry, can muse pre for undo, post for redo
                 if ((args != "-a" || !player.dimension.getBlock(pos).isAir) &&  getClipAt(player.name, {x: x, y: y, z: z}) != undefined) {

@@ -98,7 +98,13 @@ export function setBlockAt(player, pos, perm) {
         pre: player.dimension.getBlock(pos).permutation.clone(),
         post: perm.clone()
     });
-    player.dimension.getBlock(pos).setPermutation(perm);
+    if (player.dimension.getBlock(pos).isValid()) {
+        player.dimension.getBlock(pos).setPermutation(perm);
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 export function forceSetBlockAt(player, pos, perm) {
     forceAddToHistoryEntry(player.name, {
