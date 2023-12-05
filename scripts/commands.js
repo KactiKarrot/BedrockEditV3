@@ -1482,7 +1482,8 @@ async function set(args, player) {
 function remove(args, player) {
     set(["minecraft:air"], player);
 }
-function move(args, player) {
+//need to update
+async function move(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
         tellError(player, "Position 1 not set!");
         return;

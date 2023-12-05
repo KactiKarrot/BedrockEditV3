@@ -63,9 +63,11 @@ export async function paste(args, player: Player) {
         }
         relPosMap.set(player.name, subVector3(pos1Map.get(player.name), floorVector3(player.location)));
     }
+    tellMessage(player, `§aPasting...`);
     let clipSize = getClipSize(player.name);
     // Creates new entry in history map
     addHistoryEntry(player.name);
+    let playerPos = floorVector3(player.location);
     let count = 0;
     for (let x = 0; x < clipSize.x; x++) {
         for (let y = 0; y < clipSize.y; y++) {
@@ -74,7 +76,7 @@ export async function paste(args, player: Player) {
                 if (count % 1000 == 0) {
                     await sleep(1);
                 }
-                let pos = addVector3(addVector3(relPosMap.get(player.name), floorVector3(player.location)), {x: x, y: y, z: z});
+                let pos = addVector3(addVector3(relPosMap.get(player.name), playerPos), {x: x, y: y, z: z});
                 // Adds current world position, blockstate before paste, and blockstate after paste to history map entry, can muse pre for undo, post for redo
                 if ((args != "-a" || !player.dimension.getBlock(pos).isAir) &&  getClipAt(player.name, {x: x, y: y, z: z}) != undefined) {
                     setBlockAt(player, pos, getClipAt(player.name, {x: x, y: y, z: z}).clone());
