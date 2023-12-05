@@ -1,7 +1,8 @@
-import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction, ItemTypes, world, EntityScaleComponent, EntityQueryOptions, system } from "@minecraft/server";
+import { Player, BlockRaycastOptions, Vector3, EntityInventoryComponent, BlockPermutation, BlockTypes, Direction, ItemTypes, world, EntityScaleComponent, EntityQueryOptions, system, BlockVolumeUtils } from "@minecraft/server";
 import { ShapeModes, generateCone, generateDome, generateEllipse, generateEllipsoid, generatePyramid } from "Circle-Generator/Controller";
 import { copy, cut, mirror, paste, rotate } from "clipboard";
 import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, pos1Map, pos2Map, setShowParticles, setWand, setWandEnabled, setWelcome, showParticles, wandEnabled, welcomeMessage } from "main";
+import { selMap } from "selection";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, forceSetBlockAt, getHistory, getPermFromHand, getPermFromStr, getPrimaryDirection, minVector3, rotateDirection, setBlockAt, shiftVector3, sleep, tellError, tellMessage } from "utils";
 
 let commands = [
@@ -556,6 +557,7 @@ function clearHistory(args: string[], player: Player) {
     tellMessage(player, `§aEdit history cleared`)
 }
 
+// from
 function pos1(args: string[], player: Player, pos: Vector3 = null) {
     switch(args[0]) {
         case "position": {
@@ -645,8 +647,21 @@ function pos1(args: string[], player: Player, pos: Vector3 = null) {
             tellMessage(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
         }
     }
+    if (!compareVector3(pos, selMap.get(player.name).from)) {
+        if (selMap.has(player.name)) {
+            selMap.get(player.name).from = pos;
+        } else {
+            selMap.set(player.name, {from: pos, to: undefined});
+        }
+        if (selMap.get(player.name).to == undefined) {
+            tellMessage(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        } else {
+            tellMessage(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z} (${BlockVolumeUtils.getCapacity(selMap.get(player.name))} blocks)`);
+        }
+    }
 }
 
+// to
 function pos2(args: string[], player: Player, pos: Vector3 = null) {
     switch(args[0]) {
         case "position": {
@@ -734,6 +749,18 @@ function pos2(args: string[], player: Player, pos: Vector3 = null) {
             tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${diff.x * diff.y * diff.z} blocks)`);
         } else {
             tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        }
+    }
+    if (!compareVector3(pos, selMap.get(player.name).to)) {
+        if (selMap.has(player.name)) {
+            selMap.get(player.name).to = pos;
+        } else {
+            selMap.set(player.name, {to: pos, from: undefined});
+        }
+        if (selMap.get(player.name).from == undefined) {
+            tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
+        } else {
+            tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${BlockVolumeUtils.getCapacity(selMap.get(player.name))} blocks)`);
         }
     }
 }

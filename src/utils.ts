@@ -1,6 +1,6 @@
-import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent, Vector2, world, system} from "@minecraft/server"
+import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent, Vector2, world, system, BlockVolume, BlockVolumeUtils} from "@minecraft/server"
 import { historyMap, clipMap, HistoryEntry, historyIndexMap } from "main"
-
+import { Axis } from "selection";
 
 export function tellMessage(player: Player, msg) {
     player.sendMessage(msg);
@@ -21,7 +21,25 @@ export function sleep(ticks: number) {
         resolve('resolved');
       }, ticks);
     });
-  }
+}
+
+export function shrinkVolume(vol: BlockVolume, delta: Vector3): BlockVolume {
+    let newVol: BlockVolume = {from: BlockVolumeUtils.getMin(vol), to: BlockVolumeUtils.getMax(vol)};
+    let span = BlockVolumeUtils.getSpan(newVol);
+    if (span.x > 2) {
+        newVol.from.x += delta.x;
+        newVol.to.x -= delta.x;
+    }
+    if (span.y > 2) {
+        newVol.from.y += delta.y;
+        newVol.to.y -= delta.y;
+    }
+    if (span.z > 2) {
+        newVol.from.z += delta.z;
+        newVol.to.z -= delta.z;
+    }
+    return newVol
+}
 
 export function getPermFromHand(player: Player): BlockPermutation {
     let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId;

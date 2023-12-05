@@ -1,5 +1,6 @@
 import { BlockPermutation } from "@minecraft/server";
 import { relPosMap, pos1Map, pos2Map, clipMap } from "main";
+import { compApplyToAllBlocks, compSelMap } from "selection";
 import { addHistoryEntry, addToHistoryEntry, addVector3, diffVector3, floorVector3, getClipAt, getClipSize, minVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, sleep, subVector3, tellError, tellMessage } from "utils";
 export function copy(args, player) {
     if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
@@ -11,17 +12,32 @@ export function copy(args, player) {
         return;
     }
     relPosMap.set(player.name, subVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), floorVector3(player.location)));
-    setClipSize(player.name, addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name))));
-    let clipSize = getClipSize(player.name);
-    for (let x = 0; x < clipSize.x; x++) {
-        for (let y = 0; y < clipSize.y; y++) {
-            for (let z = 0; z < clipSize.z; z++) {
-                setClipAt(player.name, { x: x, y: y, z: z }, player.dimension.getBlock(addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z })).permutation.clone());
-            }
-        }
-    }
-    tellMessage(player, `§aCopied ${clipSize.x * clipSize.y * clipSize.z} blocks to clipboard`);
-    return clipSize.x * clipSize.y * clipSize.z;
+    setClipSize(player.name, subVector3(compSelMap.get(player.name).getBoundingBox().max, compSelMap.get(player.name).getBoundingBox().min));
+    let count = 0;
+    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+        setClipAt(player.name, subVector3(l, compSelMap.get(player.name).getBoundingBox().min), b.permutation.clone());
+        count++;
+    });
+    tellMessage(player, `§aCopied ${count} blocks to clipboard`);
+    // relPosMap.set(player.name, subVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), floorVector3(player.location)));
+    // setClipSize(player.name, addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name))));
+    // let clipSize = getClipSize(player.name);
+    // for (let x = 0; x < clipSize.x; x++) {
+    //     for (let y = 0; y < clipSize.y; y++) {
+    //         for (let z = 0; z < clipSize.z; z++) {
+    //             setClipAt(player.name, {x: x, y: y, z: z},
+    //                 player.dimension.getBlock(
+    //                     addVector3(
+    //                         minVector3(pos1Map.get(player.name), pos2Map.get(player.name)),
+    //                         {x: x, y: y, z: z}
+    //                     )
+    //                 ).permutation.clone()
+    //             );
+    //         }
+    //     }
+    // }
+    // tellMessage(player, `§aCopied ${clipSize.x * clipSize.y * clipSize.z} blocks to clipboard`);
+    // return clipSize.x * clipSize.y * clipSize.z
 }
 export function cut(args, player) {
     copy(null, player);

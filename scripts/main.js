@@ -19,9 +19,31 @@ export let wandEnabled = true;
 export let toolEnabled = true;
 export let welcomeMessage = true;
 // ADD BOOLEAN OPERATIONS (AND) (Minecraft Cad)
+function parseArgs(s) {
+    let split = s.split(' ');
+    split.forEach((e, i) => {
+        if (e.startsWith('"')) {
+            let x;
+            for (let j = i; j < split.length; j++) {
+                if (split[j].endsWith('"')) {
+                    x = j;
+                    break;
+                }
+            }
+            if (x == undefined) {
+                return { failed: true, result: `Unclosed string at ${e}` };
+            }
+            else {
+                split.splice(i, x - i + 1, split.slice(i, x + 1).join(' ').slice(1, -1));
+            }
+        }
+    });
+    return { failed: false, result: split };
+}
 system.beforeEvents.watchdogTerminate.subscribe((event) => {
     event.cancel = true;
 });
+// Add history enabled dynamic property
 world.afterEvents.worldInitialize.subscribe(() => {
     // scoreboard = world.scoreboard.getObjective("_beData")
     // if (scoreboard == null || scoreboard == undefined) {
@@ -130,19 +152,47 @@ world.beforeEvents.chatSend.subscribe((data) => {
     data.cancel = true;
     system.run(() => {
         const cmd = msg.substring(PREFIX.length).split(" ")[0];
-        const args = msg.substring(PREFIX.length).split(" ").slice(1);
+        // const args = msg.substring(PREFIX.length).split(" ").slice(1);
+        const args = parseArgs(msg.substring(PREFIX.length));
         let found = false;
+        if (args.failed == true) {
+            tellError(player, args.result);
+            return;
+        }
         commands.forEach((c) => {
             if (cmd == c.name || cmd == c.alias) {
                 found = true;
-                c.function(args, player);
+                // c.function(args, player)
+                c.function(args.result.slice(1), player);
             }
         });
         if (!found) {
-            tellError(player, `§cERROR: Command '${cmd}' not found`);
+            tellError(player, `Command '${cmd}' not found`);
         }
     });
 });
+system.afterEvents.scriptEventReceive.subscribe((data) => {
+    commands.forEach((c) => {
+        if (data.sourceType != 'Entity' || data.sourceEntity.typeId != 'minecraft:player') {
+            console.warn('BE scriptevent called from non-player, exiting');
+            return;
+        }
+        let player = data.sourceEntity;
+        const args = parseArgs(data.message.substring(PREFIX.length));
+        if (args.failed == true) {
+            tellError(player, args.result);
+            return;
+        }
+        let found = false;
+        if ('be:' + data.id == c.name || 'be:' + data.id == c.alias) {
+            found = true;
+            c.function(args.result, player);
+        }
+        if (!found) {
+            tellError(player, `Command '${data.id}' not found`);
+        }
+    });
+}, { namespaces: ['be'] });
 world.beforeEvents.playerBreakBlock.subscribe((data) => {
     if (data.player.hasTag("BEUser") && data.player.getComponent("minecraft:inventory").container.getItem(data.player.selectedSlot)?.typeId == currentWand.typeId) {
         system.run(() => { pos1(['facing'], data.player); });

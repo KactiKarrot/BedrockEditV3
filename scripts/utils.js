@@ -1,4 +1,4 @@
-import { BlockPermutation, Direction, BlockTypes, world, system } from "@minecraft/server";
+import { BlockPermutation, Direction, BlockTypes, world, system, BlockVolumeUtils } from "@minecraft/server";
 import { historyMap, clipMap, historyIndexMap } from "main";
 export function tellMessage(player, msg) {
     player.sendMessage(msg);
@@ -17,6 +17,23 @@ export function sleep(ticks) {
             resolve('resolved');
         }, ticks);
     });
+}
+export function shrinkVolume(vol, delta) {
+    let newVol = { from: BlockVolumeUtils.getMin(vol), to: BlockVolumeUtils.getMax(vol) };
+    let span = BlockVolumeUtils.getSpan(newVol);
+    if (span.x > 2) {
+        newVol.from.x += delta.x;
+        newVol.to.x -= delta.x;
+    }
+    if (span.y > 2) {
+        newVol.from.y += delta.y;
+        newVol.to.y -= delta.y;
+    }
+    if (span.z > 2) {
+        newVol.from.z += delta.z;
+        newVol.to.z -= delta.z;
+    }
+    return newVol;
 }
 export function getPermFromHand(player) {
     let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId;
