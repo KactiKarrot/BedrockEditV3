@@ -5,7 +5,7 @@ import * as tool from "./tool";
 
 export const PREFIX = "./";
 
-export const VERSION = "3.0.0-beta1";
+export const VERSION = "3.0.1-beta1";
 
 export let pos1Map = new Map<string, Vector3>(); // <playerName, position>
 export let pos2Map = new Map<string, Vector3>(); // <playerName, position>

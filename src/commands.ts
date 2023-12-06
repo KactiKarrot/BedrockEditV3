@@ -5,6 +5,11 @@ import { PREFIX, VERSION, WAND_NAME, currentWand, historyIndexMap, historyMap, p
 import { addCuboid, compApplyToAllBlocks, compSelMap, getCompSpan, selMap } from "selection";
 import { addHistoryEntry, addToHistoryEntry, addVector3, compareVector3, diffVector3, floorVector3, forceSetBlockAt, getHistory, getPermFromHand, getPermFromStr, getPrimaryDirection, getZeroVector3, minVector3, multiplyVector3, rotateDirection, setBlockAt, shiftVector3, sleep, subVector3, tellError, tellMessage } from "utils";
 
+/* Need to add:
+- Line (curved line, use circle algorithm)
+- Disable history (for performance)
+*/
+
 let commands = [
     // help
     {
@@ -1497,7 +1502,8 @@ function remove(args: string[], player: Player) {
     set(['minecraft:air'], player);
 }
 
-//updating
+//done
+// Moves the selected region, and the selection with it
 async function move(args: string[], player: Player) {
     if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).from == undefined) {
         tellError(player, "Position 1 not set!");
@@ -1695,12 +1701,13 @@ async function move(args: string[], player: Player) {
     tellMessage(player, `§aMoved ${count} blocks ${direction}`)
 }
 
+//updating
 async function stack(args: string[], player: Player) {
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).from == undefined) {
         tellError(player, "Position 1 not set!");
         return;
     }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).to == undefined) {
         tellError(player, "Position 2 not set!");
         return;
     }
@@ -1831,6 +1838,9 @@ async function stack(args: string[], player: Player) {
     }
     count =  0;
     for (let i = 0; i < amount; i++) {
+        // add all compound volume stuff here
+    }
+    for (let i = 0; i < amount; i++) {
         for (let x = 0; x < selSize.x; x++) {
             for (let y = 0; y < selSize.y; y++) {
                 for (let z = 0; z < selSize.z; z++) {
@@ -1859,6 +1869,7 @@ async function stack(args: string[], player: Player) {
                             break;
                         }
                     }
+                    // why force?
                     forceSetBlockAt(player, shiftVector3(addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), {x: x, y: y, z: z}), direction, distance), sel[x][y][z].clone())
                     // addToHistoryEntry(player.name, {
                     //     pos: shiftVector3(
