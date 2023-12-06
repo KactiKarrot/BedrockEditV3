@@ -1,10 +1,10 @@
 {
     "format_version": 2,
     "header": {
-      "name": "BedrockEdit V3",
+      "name": "BedrockEdit V3 [B]",
       "description": "§bBedrock interpretation of WorldEdit\n§6By KactiKarrot",
       "uuid": "552cce60-952c-444d-be65-b611d45af06e",
-      "version": [3, 0, 0],
+      "version": [3, 0, 1],
       "min_engine_version": [1, 20, 0]
     },
     "modules": [
@@ -19,7 +19,11 @@
     "dependencies": [
       {
         "module_name": "@minecraft/server",
-        "version": "1.7.0-beta"
+        "version": "1.8.0-beta"
+      },
+      {
+        "uuid": "c11360f1-e8fb-417d-ba39-cf2975f4d9b6",
+        "version": [3, 0, 0]
       }
     ]
   }

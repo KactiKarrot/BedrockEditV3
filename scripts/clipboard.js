@@ -1,75 +1,95 @@
-import { BlockPermutation } from "@minecraft/server";
-import { relPosMap, pos1Map, pos2Map, clipMap } from "main";
-import { addHistoryEntry, addToHistoryEntry, addVector3, ceilVector3, diffVector3, getClipAt, getClipSize, minVector3, rotatePerm, setClipAt, setClipSize, subVector3, tellError } from "utils";
-function copy(args, player) {
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+import { BlockPermutation, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { ShapeModes } from "Circle-Generator/Controller";
+import { relPosMap, pos1Map, clipMap } from "main";
+import { addCuboid, compApplyToAllBlocks, compSelMap, selMap } from "selection";
+import { addHistoryEntry, addVector3, floorVector3, getClipAt, getClipSize, minVector3, multiplyVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, sleep, subVector3, tellError, tellMessage } from "utils";
+//done
+export function copy(args, player) {
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).from == undefined) {
         tellError(player, "Position 1 not set!");
         return;
     }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).to == undefined) {
         tellError(player, "Position 2 not set!");
         return;
     }
-    relPosMap.set(player.name, subVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), ceilVector3(player.location)));
-    setClipSize(player.name, addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name))));
-    let clipSize = getClipSize(player.name);
-    for (let x = 0; x < clipSize.x; x++) {
-        for (let y = 0; y < clipSize.y; y++) {
-            for (let z = 0; z < clipSize.z; z++) {
-                setClipAt(player.name, { x: x, y: y, z: z }, player.dimension.getBlock(addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z })).permutation.clone());
-            }
-        }
+    if (!compSelMap.has(player.name)) {
+        compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)));
+        addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 })), ShapeModes.filled);
     }
-    player.sendMessage(`§aCopied ${clipSize.x * clipSize.y * clipSize.z} blocks to clipboard`);
-    return clipSize.x * clipSize.y * clipSize.z;
+    relPosMap.set(player.name, subVector3(minVector3(selMap.get(player.name).from, selMap.get(player.name).to), floorVector3(player.location)));
+    setClipSize(player.name, addVector3({ x: 1, y: 1, z: 1 }, subVector3(compSelMap.get(player.name).getBoundingBox().max, compSelMap.get(player.name).getBoundingBox().min)));
+    let count = 0;
+    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+        setClipAt(player.name, subVector3(l, compSelMap.get(player.name).getBoundingBox().min), b.permutation.clone());
+        count++;
+    });
+    compSelMap.delete(player.name);
+    if (args != null) {
+        tellMessage(player, `§aCopied ${count} blocks to clipboard`);
+    }
 }
-function cut(args, player) {
+//done
+export async function cut(args, player) {
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).from == undefined) {
+        tellError(player, "Position 1 not set!");
+        return;
+    }
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).to == undefined) {
+        tellError(player, "Position 2 not set!");
+        return;
+    }
     copy(null, player);
     let perm = BlockPermutation.resolve("minecraft:air");
-    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
     addHistoryEntry(player.name);
-    for (let x = 0; x < selSize.x; x++) {
-        for (let y = 0; y < selSize.y; y++) {
-            for (let z = 0; z < selSize.z; z++) {
-                addToHistoryEntry(player.name, {
-                    pos: addVector3({ x: x, y: y, z: z }, minVector3(pos1Map.get(player.name), pos2Map.get(player.name))),
-                    pre: player.dimension.getBlock(addVector3({ x: x, y: y, z: z }, minVector3(pos1Map.get(player.name), pos2Map.get(player.name)))).permutation.clone(),
-                    post: perm.clone()
-                });
-                player.dimension.getBlock(addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: x, y: y, z: z })).setPermutation(perm.clone());
-            }
+    setClipSize(player.name, addVector3({ x: 1, y: 1, z: 1 }, subVector3(compSelMap.get(player.name).getBoundingBox().max, compSelMap.get(player.name).getBoundingBox().min)));
+    let count = 0;
+    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
+        setBlockAt(player, l, perm.clone());
+        count++;
+        if (count % 1000 == 0) {
+            await sleep(1);
         }
-    }
+    });
+    tellMessage(player, `§aCut ${count} blocks to clipboard`);
 }
-function paste(args, player) {
+//done
+export async function paste(args, player) {
     if (!clipMap.has(player.name)) {
         tellError(player, `Nothing in clipboard`);
         return;
     }
-    if (!relPosMap.has(player.name) || (args.length > 0 && args[0] == '-p1')) {
-        relPosMap.set(player.name, subVector3(pos1Map.get(player.name), ceilVector3(player.location)));
+    if ((args.length > 0 && (args[0] == '-ap' || args[0] == '-p'))) {
+        if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).from == undefined) {
+            tellError(player, "Position 1 not set!");
+            return;
+        }
+        relPosMap.set(player.name, subVector3(pos1Map.get(player.name), floorVector3(player.location)));
     }
+    tellMessage(player, `§aPasting...`);
     let clipSize = getClipSize(player.name);
     // Creates new entry in history map
     addHistoryEntry(player.name);
+    let playerPos = floorVector3(player.location);
+    let count = 0;
     for (let x = 0; x < clipSize.x; x++) {
         for (let y = 0; y < clipSize.y; y++) {
             for (let z = 0; z < clipSize.z; z++) {
+                count++;
+                if (count % 1000 == 0) {
+                    await sleep(1);
+                }
+                let pos = addVector3(addVector3(relPosMap.get(player.name), playerPos), { x: x, y: y, z: z });
                 // Adds current world position, blockstate before paste, and blockstate after paste to history map entry, can muse pre for undo, post for redo
-                if ((args != "-a" || !player.dimension.getBlock(pos1Map.get(player.name)).isAir) && getClipAt(player.name, { x: x, y: y, z: z }) != undefined) {
-                    addToHistoryEntry(player.name, {
-                        pos: addVector3(addVector3(relPosMap.get(player.name), ceilVector3(player.location)), { x: x, y: y, z: z }),
-                        pre: player.dimension.getBlock(addVector3(addVector3(relPosMap.get(player.name), ceilVector3(player.location)), { x: x, y: y, z: z })).permutation.clone(),
-                        post: getClipAt(player.name, { x: x, y: y, z: z }).clone()
-                    });
-                    player.dimension.getBlock(addVector3(addVector3(relPosMap.get(player.name), ceilVector3(player.location)), { x: x, y: y, z: z })).setPermutation(getClipAt(player.name, { x: x, y: y, z: z }).clone());
+                if ((args != "-a" || !(getClipAt(player.name, { x: x, y: y, z: z }).type.id == 'minecraft:air')) && getClipAt(player.name, { x: x, y: y, z: z }) != undefined) {
+                    setBlockAt(player, pos, getClipAt(player.name, { x: x, y: y, z: z }).clone());
                 }
             }
         }
     }
-    player.sendMessage(`§aPasted ${clipSize.x * clipSize.y * clipSize.z} blocks from clipboard`);
+    tellMessage(player, `§aPasted ${count} blocks from clipboard`);
 }
-function rotate(args, player) {
+export function rotate(args, player) {
     if (args.length < 1) {
         tellError(player, 'No angle given');
         return;
@@ -98,15 +118,15 @@ function rotate(args, player) {
         tellError(player, `Nothing in clipboard`);
         return;
     }
-    let oldClip = clipMap.get(player.name);
-    let clipSize = getClipSize(player.name);
-    clipSize = {
-        x: clipSize.z,
-        y: clipSize.y,
-        z: clipSize.x
-    };
-    let newClip = Array(clipSize.x).fill(null).map(() => Array(clipSize.y).fill(null).map(() => Array(clipSize.z).fill(null)));
     for (let a = 0; a < angle / 90; a++) {
+        let oldClip = clipMap.get(player.name);
+        let clipSize = getClipSize(player.name);
+        clipSize = {
+            x: clipSize.z,
+            y: clipSize.y,
+            z: clipSize.x
+        };
+        let newClip = Array(clipSize.x).fill(null).map(() => Array(clipSize.y).fill(null).map(() => Array(clipSize.z).fill(null)));
         for (let i = 0; i < clipSize.z; i++) {
             for (let j = 0; j < clipSize.y; j++) {
                 for (let k = 0; k < clipSize.x; k++) {
@@ -117,11 +137,17 @@ function rotate(args, player) {
                 }
             }
         }
+        // relPosMap.set(player.name, subVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), floorVector3(player.location)));
+        relPosMap.set(player.name, {
+            x: -(relPosMap.get(player.name).z + clipSize.x - 1),
+            y: relPosMap.get(player.name).y,
+            z: relPosMap.get(player.name).x
+        });
+        clipMap.set(player.name, newClip);
     }
-    clipMap.set(player.name, newClip);
-    player.sendMessage(`§aRotated clipboard ${angle} degrees`);
+    tellMessage(player, `§aRotated clipboard ${angle} degrees`);
 }
-function mirror(args, player) {
+export function mirror(args, player) {
     if (args.length < 1) {
         tellError(player, 'No axis given');
         return;
@@ -148,13 +174,27 @@ function mirror(args, player) {
                     else {
                         newClip[i][j][k] = oldClip[i][j][clipSize.z - 1 - k].clone();
                     }
+                    //Doesnt work to everything (stairs)
                     newClip[i][j][k] = rotatePerm(newClip[i][j][k]);
                     newClip[i][j][k] = rotatePerm(newClip[i][j][k]);
                 }
             }
         }
     }
+    if (axis == 'x') {
+        relPosMap.set(player.name, {
+            x: relPosMap.get(player.name).x * -1 - clipSize.x + 1,
+            y: relPosMap.get(player.name).y,
+            z: relPosMap.get(player.name).z
+        });
+    }
+    else {
+        relPosMap.set(player.name, {
+            x: relPosMap.get(player.name).x,
+            y: relPosMap.get(player.name).y,
+            z: relPosMap.get(player.name).z * -1 - clipSize.z + 1
+        });
+    }
     clipMap.set(player.name, newClip);
-    player.sendMessage(`§aMirrored clipboard along the ${axis} axis`);
+    tellMessage(player, `§aMirrored clipboard over the ${axis} axis`);
 }
-export { copy, cut, paste, rotate, mirror };
