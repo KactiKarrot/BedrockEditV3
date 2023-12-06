@@ -1583,22 +1583,29 @@ async function move(args: string[], player: Player) {
     addHistoryEntry(player.name);
     let count = 0;
     let origin = compSelMap.get(player.name).getOrigin();
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
         if (!air && b.permutation.type.id == perm.type.id) {
             return;
         }
         sel[l.x - origin.x][l.y - origin.y][l.z - origin.z] = b.permutation.clone()
         setBlockAt(player, l, perm.clone());
         count++;
+        if (count % 1000 == 0) {
+            await sleep(1);
+        }
     })
     compSelMap.get(player.name).translateOrigin(shiftVector3(getZeroVector3(), direction, amount));
     origin = compSelMap.get(player.name).getOrigin();
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+    count = 0; // May need to be separate variable
+    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
         if (!air && b.permutation.type.id == perm.type.id) {
             return;
         }
         setBlockAt(player, l, sel[l.x - origin.x][l.y - origin.y][l.z - origin.z].clone())
         count++;
+        if (count % 1000 == 0) {
+            await sleep(1);
+        }
     })
 
     
