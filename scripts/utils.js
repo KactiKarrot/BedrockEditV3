@@ -516,6 +516,15 @@ export function addVector3(a, b) {
     };
     return sum;
 }
+// Multiplies two vectors and returns the output
+export function multiplyVector3(a, b) {
+    let product = {
+        x: a.x * b.x,
+        y: a.y * b.y,
+        z: a.z * b.z
+    };
+    return product;
+}
 // Subtracts two vectors and returns the output
 export function subVector3(a, b) {
     let diff = {

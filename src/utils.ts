@@ -528,6 +528,16 @@ export function addVector3(a: Vector3, b: Vector3) {
     return sum
 }
 
+// Multiplies two vectors and returns the output
+export function multiplyVector3(a: Vector3, b: Vector3) {
+    let product: Vector3 = {
+        x: a.x * b.x,
+        y: a.y * b.y,
+        z: a.z * b.z
+    }
+    return product
+}
+
 // Subtracts two vectors and returns the output
 export function subVector3(a: Vector3, b: Vector3) {
     let diff: Vector3 = {
