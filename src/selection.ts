@@ -1,4 +1,4 @@
-import { BlockVolume, CompoundBlockVolume, Vector3, BlockVolumeUtils, Block, Dimension, CompoundBlockVolumeAction, CompoundBlockVolumePositionRelativity } from "@minecraft/server";
+import { BlockVolume, CompoundBlockVolume, Vector3, BlockVolumeUtils, Block, Dimension, CompoundBlockVolumeAction, CompoundBlockVolumePositionRelativity, Vector } from "@minecraft/server";
 import { ShapeModes, generateEllipse, generateEllipsoid } from "Circle-Generator/Controller";
 import { addVector3, shrinkVolume, subVector3 } from "utils";
 
@@ -37,6 +37,10 @@ export function compApplyToAllBlocks(vol: CompoundBlockVolume, dimension: Dimens
     for (let bl of vol.getBlockLocationIterator()) {
         callback(dimension.getBlock(bl), bl);
     }
+}
+
+export function getCompSpan(vol: CompoundBlockVolume): Vector3 {
+    return addVector3({x: 1, y: 1, z: 1}, subVector3(vol.getBoundingBox().max, vol.getBoundingBox().min))
 }
 
 // Mode thick means standard hollow cube, mode thin means just walls

@@ -33,6 +33,8 @@ export let toolEnabled = true;
 
 export let welcomeMessage = true;
 
+export let historyEnabled = true;
+
 // ADD BOOLEAN OPERATIONS (AND) (Minecraft Cad)
 
 function parseArgs(s: string, ): {failed: boolean, result: string[]} {

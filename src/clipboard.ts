@@ -1,7 +1,7 @@
 import { Player, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { relPosMap, pos1Map, clipMap } from "main";
-import { addCuboid, compApplyToAllBlocks, compSelMap, selMap } from "selection";
+import { addCuboid, compApplyToAllBlocks, compSelMap, getCompSpan, selMap } from "selection";
 import { addHistoryEntry, addVector3, floorVector3, getClipAt, getClipSize, minVector3, multiplyVector3, rotatePerm, setBlockAt, setClipAt, setClipSize, sleep, subVector3, tellError, tellMessage } from "utils";
 
 //done
@@ -15,19 +15,24 @@ export function copy(args, player: Player) {
         return;
     }
 
+    let manualSel = true;
+
     if(!compSelMap.has(player.name)) {
+        manualSel = false;
         compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)))
         addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), {x: -1, y: -1, z: -1})), ShapeModes.filled);
     }
 
     relPosMap.set(player.name, subVector3(minVector3(selMap.get(player.name).from, selMap.get(player.name).to), floorVector3(player.location)));
-    setClipSize(player.name, addVector3({x: 1, y: 1, z: 1}, subVector3(compSelMap.get(player.name).getBoundingBox().max, compSelMap.get(player.name).getBoundingBox().min)))
+    setClipSize(player.name, getCompSpan(compSelMap.get(player.name)))
     let count = 0;
     compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
         setClipAt(player.name, subVector3(l, compSelMap.get(player.name).getBoundingBox().min), b.permutation.clone());
         count++;
     })
-    compSelMap.delete(player.name)
+    if (!manualSel) {
+        compSelMap.delete(player.name)
+    }
     if (args != null) {
         tellMessage(player, `§aCopied ${count} blocks to clipboard`);
     }
