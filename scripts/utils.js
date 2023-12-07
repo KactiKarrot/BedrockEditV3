@@ -1,5 +1,10 @@
 import { BlockPermutation, Direction, BlockTypes, world, system, BlockVolumeUtils } from "@minecraft/server";
-import { historyMap, clipMap, historyIndexMap } from "main";
+import { commands } from "commands";
+import { historyMap, clipMap, historyIndexMap, historyEnabled } from "main";
+import { selMap } from "selection";
+const positiveVector3 = { x: 1, y: 1, z: 1 };
+const zeroVector3 = { x: 0, y: 0, z: 0 };
+const negativeVector3 = { x: -1, y: -1, z: -1 };
 export function tellMessage(player, msg) {
     player.sendMessage(msg);
     world.getAllPlayers().forEach((e) => {
@@ -7,6 +12,26 @@ export function tellMessage(player, msg) {
             e.sendMessage('§o§7' + player.name + ': ' + msg);
         }
     });
+}
+export function getByAlias(alias) {
+    for (let [name, c] of commands.entries()) {
+        if (c.alias == undefined)
+            return undefined;
+        if (c.alias == alias)
+            return name;
+    }
+    return undefined;
+}
+export function playerHasSel(player) {
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).from == undefined) {
+        tellError(player, "Position 1 not set!");
+        return false;
+    }
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).to == undefined) {
+        tellError(player, "Position 2 not set!");
+        return false;
+    }
+    return true;
 }
 export function tellError(player, msg) {
     player.sendMessage(`§cError: ${msg}`);
@@ -110,11 +135,13 @@ export function getPermFromStr(str, player) {
     }
 }
 export function setBlockAt(player, pos, perm) {
-    addToHistoryEntry(player.name, {
-        pos: pos,
-        pre: player.dimension.getBlock(pos).permutation.clone(),
-        post: perm.clone()
-    });
+    if (historyEnabled) {
+        addToHistoryEntry(player.name, {
+            pos: pos,
+            pre: player.dimension.getBlock(pos).permutation.clone(),
+            post: perm.clone()
+        });
+    }
     if (player.dimension.getBlock(pos).isValid()) {
         player.dimension.getBlock(pos).setPermutation(perm);
         return true;
@@ -506,6 +533,18 @@ export function rotateDirection(d, a) {
             }
         }
     }
+}
+export function getPosVector3() {
+    return cloneVector3(positiveVector3);
+}
+export function getZeroVector3() {
+    return cloneVector3(zeroVector3);
+}
+export function getNegVector3() {
+    return cloneVector3(negativeVector3);
+}
+export function cloneVector3(a) {
+    return { x: a.x, y: a.y, z: a.z };
 }
 // Adds two vectors and returns the output
 export function addVector3(a, b) {

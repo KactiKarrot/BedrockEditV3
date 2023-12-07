@@ -1,6 +1,7 @@
 import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent, Vector2, world, system, BlockVolume, BlockVolumeUtils} from "@minecraft/server"
+import { commands } from "commands";
 import { historyMap, clipMap, HistoryEntry, historyIndexMap, historyEnabled } from "main"
-import { Axis } from "selection";
+import { Axis, selMap } from "selection";
 
 const positiveVector3 = {x: 1, y: 1, z: 1};
 const zeroVector3 = {x: 0, y: 0, z: 0};
@@ -13,6 +14,29 @@ export function tellMessage(player: Player, msg) {
             e.sendMessage('§o§7' + player.name + ': ' + msg);
         }
     });
+}
+
+export function getByAlias(alias) {
+    for (let [name, c] of commands.entries()) {
+        if (c.alias == undefined)
+            return undefined;
+        if (c.alias == alias)
+            return name;
+    }
+    return undefined
+}
+
+
+export function playerHasSel(player: Player) {
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).from == undefined) {
+        tellError(player, "Position 1 not set!");
+        return false;
+    }
+    if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).to == undefined) {
+        tellError(player, "Position 2 not set!");
+        return false;
+    }
+    return true;
 }
 
 export function tellError(player: Player, msg) {

@@ -1,9 +1,15 @@
 import { world, system, ItemStack } from "@minecraft/server";
 import { commands, pos1, pos2 } from "commands";
-import { addVector3, compareVector3, diffVector3, minVector3, tellError } from "utils";
+import { addVector3, compareVector3, diffVector3, getByAlias, minVector3, tellError } from "utils";
 import * as tool from "./tool";
+import * as Misc from "commands/misc/register";
+import * as Clipboard from "commands/clipboard/register";
+import * as Shapes from "commands/shapes/register";
 export const PREFIX = "./";
-export const VERSION = "3.0.0-beta1";
+export const VERSION = "3.0.1-beta1";
+Misc.register();
+Clipboard.register();
+Shapes.register();
 export let pos1Map = new Map(); // <playerName, position>
 export let pos2Map = new Map(); // <playerName, position>
 export let relPosMap = new Map();
@@ -18,6 +24,8 @@ export const WAND_LORE = ['Sets Position 1 and Position 2 without commands', "Pr
 export let wandEnabled = true;
 export let toolEnabled = true;
 export let welcomeMessage = true;
+export let historyEnabled = true;
+export let changeLimit = -1;
 // ADD BOOLEAN OPERATIONS (AND) (Minecraft Cad)
 function parseArgs(s) {
     let split = s.split(' ');
@@ -151,7 +159,7 @@ world.beforeEvents.chatSend.subscribe((data) => {
     }
     data.cancel = true;
     system.run(() => {
-        const cmd = msg.substring(PREFIX.length).split(" ")[0];
+        let cmd = msg.substring(PREFIX.length).split(" ")[0];
         // const args = msg.substring(PREFIX.length).split(" ").slice(1);
         const args = parseArgs(msg.substring(PREFIX.length));
         let found = false;
@@ -159,22 +167,19 @@ world.beforeEvents.chatSend.subscribe((data) => {
             tellError(player, args.result);
             return;
         }
-        commands.forEach((c) => {
-            if (cmd == c.name || cmd == c.alias) {
-                found = true;
-                // c.function(args, player)
-                c.function(args.result.slice(1), player);
+        if (!commands.has(cmd)) {
+            cmd = getByAlias(cmd);
+            if (cmd == undefined) {
+                tellError(player, `Command '${msg.substring(PREFIX.length).split(" ")[0]}' not found`);
+                return;
             }
-        });
-        if (!found) {
-            tellError(player, `Command '${cmd}' not found`);
         }
+        commands.get(cmd).function(args.result.slice(1), player);
     });
 });
 system.afterEvents.scriptEventReceive.subscribe((data) => {
     commands.forEach((c) => {
         if (data.sourceType != 'Entity' || data.sourceEntity.typeId != 'minecraft:player') {
-            console.warn('BE scriptevent called from non-player, exiting');
             return;
         }
         let player = data.sourceEntity;
@@ -183,14 +188,15 @@ system.afterEvents.scriptEventReceive.subscribe((data) => {
             tellError(player, args.result);
             return;
         }
-        let found = false;
-        if ('be:' + data.id == c.name || 'be:' + data.id == c.alias) {
-            found = true;
-            c.function(args.result, player);
+        let cmd = data.id.substring(3);
+        if (!commands.has(cmd)) {
+            cmd = getByAlias(cmd);
+            if (cmd == undefined) {
+                tellError(player, `Command '${data.id.substring(3)}' not found`);
+                return;
+            }
         }
-        if (!found) {
-            tellError(player, `Command '${data.id}' not found`);
-        }
+        commands.get(cmd).function(args.result.slice(1), player);
     });
 }, { namespaces: ['be'] });
 world.beforeEvents.playerBreakBlock.subscribe((data) => {

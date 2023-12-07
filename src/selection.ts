@@ -23,6 +23,10 @@ export enum Axis { X, Y, Z };
 export let selMap = new Map<string, BlockVolume>();
 export let compSelMap = new Map<string, CompoundBlockVolume>();
 
+export function cloneVol(vol: BlockVolume): BlockVolume {
+    return {from: vol.from, to: vol.to}
+}
+
 export function setStandardSel(sel: BlockVolume, from: Vector3, to: Vector3) {
     sel = {from: from, to: to};
 }
@@ -49,14 +53,14 @@ export function getCompSpan(vol: CompoundBlockVolume): Vector3 {
 export function addCuboid(compSel: CompoundBlockVolume, cube: BlockVolume, mode: ShapeModes, orientation?: Axis) {
     compSel.pushVolume({volume: cube, action: CompoundBlockVolumeAction.Add});
     if (mode != ShapeModes.filled) {
-        compSel.pushVolume({volume: shrinkVolume(cube, {x: (mode == ShapeModes.thin && orientation == Axis.X ? 0 : 1), y: (mode == ShapeModes.thin && orientation == Axis.Y ? 0 : 1), z: (mode == ShapeModes.thin && orientation == Axis.Z ? 0 : 1)}), action: CompoundBlockVolumeAction.Subtract});
+        compSel.pushVolume({volume: shrinkVolume(cloneVol(cube), {x: (mode == ShapeModes.thin && orientation == Axis.X ? 0 : 1), y: (mode == ShapeModes.thin && orientation == Axis.Y ? 0 : 1), z: (mode == ShapeModes.thin && orientation == Axis.Z ? 0 : 1)}), action: CompoundBlockVolumeAction.Subtract});
     }
 }
 
 export function subtractCuboid(compSel: CompoundBlockVolume, cube: BlockVolume, mode: ShapeModes, orientation?: Axis) {
     compSel.pushVolume({volume: cube, action: CompoundBlockVolumeAction.Subtract});
     if (mode != ShapeModes.filled) {
-        compSel.pushVolume({volume: shrinkVolume(cube, {x: (mode == ShapeModes.thin && orientation == Axis.X ? 0 : 1), y: (mode == ShapeModes.thin && orientation == Axis.Y ? 0 : 1), z: (mode == ShapeModes.thin && orientation == Axis.Z ? 0 : 1)}), action: CompoundBlockVolumeAction.Add});
+        compSel.pushVolume({volume: shrinkVolume(cloneVol(cube), {x: (mode == ShapeModes.thin && orientation == Axis.X ? 0 : 1), y: (mode == ShapeModes.thin && orientation == Axis.Y ? 0 : 1), z: (mode == ShapeModes.thin && orientation == Axis.Z ? 0 : 1)}), action: CompoundBlockVolumeAction.Add});
     }
 }
 
@@ -69,7 +73,7 @@ export function addCylinder(compSel: CompoundBlockVolume, area: BlockVolume, mod
                 switch(orientation) {
                     case Axis.X: {
                         if (mat[z][y] || (faces && (x == 0 || x == span.x - 1) && generateEllipse(span.z, span.y, ShapeModes.filled)[z][y])) {
-                            let pos = addVector3({x: x, y: y, z: z}, subVector3(compSel.getOrigin(), BlockVolumeUtils.getMin(area)))
+                            let pos = addVector3({x: x, y: y, z: z}, BlockVolumeUtils.getMin(area))
                             compSel.pushVolume({
                                 volume: {
                                     from: pos,
@@ -81,7 +85,7 @@ export function addCylinder(compSel: CompoundBlockVolume, area: BlockVolume, mod
                     }
                     case Axis.Y: {
                         if (mat[x][z] || (faces && (y == 0 || y == span.y - 1) && generateEllipse(span.x, span.z, ShapeModes.filled)[x][z])) {
-                            let pos = addVector3({x: x, y: y, z: z}, subVector3(compSel.getOrigin(), BlockVolumeUtils.getMin(area)))
+                            let pos = addVector3({x: x, y: y, z: z}, BlockVolumeUtils.getMin(area))
                             compSel.pushVolume({
                                 volume: {
                                     from: pos,
@@ -93,7 +97,7 @@ export function addCylinder(compSel: CompoundBlockVolume, area: BlockVolume, mod
                     }
                     case Axis.Z: {
                         if (mat[x][y] || (faces && (z == 0 || z == span.z - 1) && generateEllipse(span.x, span.y, ShapeModes.filled)[x][y])) {
-                            let pos = addVector3({x: x, y: y, z: z}, subVector3(compSel.getOrigin(), BlockVolumeUtils.getMin(area)))
+                            let pos = addVector3({x: x, y: y, z: z}, BlockVolumeUtils.getMin(area))
                             compSel.pushVolume({
                                 volume: {
                                     from: pos,
@@ -118,7 +122,7 @@ export function subtractCylinder(compSel: CompoundBlockVolume, area: BlockVolume
                 switch(orientation) {
                     case Axis.X: {
                         if (mat[z][y] || (faces && (x == 0 || x == span.x - 1) && generateEllipse(span.z, span.y, ShapeModes.filled)[z][y])) {
-                            let pos = addVector3({x: x, y: y, z: z}, subVector3(compSel.getOrigin(), BlockVolumeUtils.getMin(area)))
+                            let pos = addVector3({x: x, y: y, z: z}, BlockVolumeUtils.getMin(area))
                             compSel.pushVolume({
                                 volume: {
                                     from: pos,
@@ -130,7 +134,7 @@ export function subtractCylinder(compSel: CompoundBlockVolume, area: BlockVolume
                     }
                     case Axis.Y: {
                         if (mat[x][z] || (faces && (y == 0 || y == span.y - 1) && generateEllipse(span.x, span.z, ShapeModes.filled)[x][z])) {
-                            let pos = addVector3({x: x, y: y, z: z}, subVector3(compSel.getOrigin(), BlockVolumeUtils.getMin(area)))
+                            let pos = addVector3({x: x, y: y, z: z}, BlockVolumeUtils.getMin(area))
                             compSel.pushVolume({
                                 volume: {
                                     from: pos,
@@ -142,7 +146,7 @@ export function subtractCylinder(compSel: CompoundBlockVolume, area: BlockVolume
                     }
                     case Axis.Z: {
                         if (mat[x][y] || (faces && (z == 0 || z == span.z - 1) && generateEllipse(span.x, span.y, ShapeModes.filled)[x][y])) {
-                            let pos = addVector3({x: x, y: y, z: z}, subVector3(compSel.getOrigin(), BlockVolumeUtils.getMin(area)))
+                            let pos = addVector3({x: x, y: y, z: z}, BlockVolumeUtils.getMin(area))
                             compSel.pushVolume({
                                 volume: {
                                     from: pos,
@@ -165,7 +169,7 @@ export function addEllipsoid(compSel: CompoundBlockVolume, area: BlockVolume, mo
         e.forEach((f, y) => {
             f.forEach((b, z) => {
                 if (b) {
-                    let pos = addVector3({x: x, y: y, z: z}, subVector3(compSel.getOrigin(), BlockVolumeUtils.getMin(area)))
+                    let pos = addVector3({x: x, y: y, z: z}, BlockVolumeUtils.getMin(area))
                     compSel.pushVolume({
                         volume: {
                             from: pos,
@@ -186,7 +190,7 @@ export function subtractEllipsoid(compSel: CompoundBlockVolume, area: BlockVolum
         e.forEach((f, y) => {
             f.forEach((b, z) => {
                 if (b) {
-                    let pos = addVector3({x: x, y: y, z: z}, subVector3(compSel.getOrigin(), BlockVolumeUtils.getMin(area)))
+                    let pos = addVector3({x: x, y: y, z: z}, BlockVolumeUtils.getMin(area))
                     compSel.pushVolume({
                         volume: {
                             from: pos,
