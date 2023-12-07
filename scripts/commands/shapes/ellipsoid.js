@@ -3,17 +3,15 @@ import { generateEllipsoid } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { pos1Map, pos2Map } from "main";
 import { getPermFromHand, tellError, addVector3, diffVector3, addHistoryEntry, minVector3, setBlockAt, tellMessage } from "utils";
-export function register() {
-    commands.set('ellipsoid', {
-        alias: "sphere",
-        function: ellipsoid,
-        description: "Generates an ellipsoid",
-        extDescription: "Generates an ellipsoid between Position 1 and Position 2\nmode: Whether the ellipsoid is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
-        usage: [
-            "[mode: thick | thin | filled] [tileName: Block]"
-        ]
-    });
-}
+commands.set('ellipsoid', {
+    alias: "sphere",
+    function: ellipsoid,
+    description: "Generates an ellipsoid",
+    extDescription: "Generates an ellipsoid between Position 1 and Position 2\nmode: Whether the ellipsoid is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
+    usage: [
+        "[mode: thick | thin | filled] [tileName: Block]"
+    ]
+});
 function ellipsoid(args, player) {
     let mode = 'filled';
     let perm = getPermFromHand(player);

@@ -4,17 +4,14 @@ import { commands } from "commands";
 import { pos1Map, pos2Map } from "main";
 import { getPermFromHand, tellError, addVector3, diffVector3, addHistoryEntry, minVector3, setBlockAt, tellMessage } from "utils";
 
-export function register() {
-    commands.set('cone', {
-        alias: "",
-        function: cone,
-        description: "Generates a cone",
-        extDescription: "Generates a cone between Position 1 and Position 2\nmode: Whether the cone is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
-        usage: [
-            "[mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
-        ]
-    })
-}
+commands.set('cone', {
+    function: cone,
+    description: "Generates a cone",
+    extDescription: "Generates a cone between Position 1 and Position 2\nmode: Whether the cone is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
+    usage: [
+        "[mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
+    ]
+})
 
 // Doesn't work (offset is off and top of odd diameter has 2x2)
 function cone(args: string[], player: Player) {

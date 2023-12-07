@@ -1,18 +1,16 @@
 import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack } from "@minecraft/server";
 import { commands, pos1, pos2 } from "commands";
-import { addVector3, compareVector3, diffVector3, getByAlias, maxVector3, minVector3, subVector3, tellError } from "utils";
+import { addVector3, compareVector3, diffVector3, getByAlias, minVector3, tellError } from "utils";
 import * as tool from "./tool";
-import * as Misc from "commands/misc/register"
-import * as Clipboard from "commands/clipboard/register"
-import * as Shapes from "commands/shapes/register"
+import "commands/misc/register"
+import "commands/history/register"
+import "commands/selection/register"
+import "commands/clipboard/register"
+import "commands/shapes/register"
 
 export const PREFIX = "./";
 
 export const VERSION = "3.0.1-beta1";
-
-Misc.register();
-Clipboard.register();
-Shapes.register();
 
 export let pos1Map = new Map<string, Vector3>(); // <playerName, position>
 export let pos2Map = new Map<string, Vector3>(); // <playerName, position>

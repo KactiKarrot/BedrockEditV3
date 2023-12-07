@@ -4,16 +4,14 @@ import { clipMap, pos1Map, relPosMap } from "main";
 import { selMap } from "selection";
 import { addHistoryEntry, addVector3, floorVector3, getClipAt, getClipSize, setBlockAt, sleep, subVector3, tellError, tellMessage } from "utils";
 
-export function register() {
-    commands.set('paste', {
-        function: paste,
-        description: "Pastes a region from the player's clipboard",
-        extDescription: "Pastes a region from the player's clipboard\n-a: Doesn't paste air blocks\n-p: Pastes starting with the lowest coordinate at Position 1",
-        usage: [
-            "[-ap]"
-        ]
-    })
-}
+commands.set('paste', {
+    function: paste,
+    description: "Pastes a region from the player's clipboard",
+    extDescription: "Pastes a region from the player's clipboard\n-a: Doesn't paste air blocks\n-p: Pastes starting with the lowest coordinate at Position 1",
+    usage: [
+        "[-ap]"
+    ]
+})
 
 async function paste(args, player: Player) {
     if (!clipMap.has(player.name)) {

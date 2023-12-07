@@ -2,16 +2,14 @@ import { BlockPermutation, } from "@minecraft/server";
 import { commands } from "commands";
 import { compApplyToAllBlocks, compSelMap } from "selection";
 import { addHistoryEntry, addVector3, playerHasSel, setBlockAt, setClipSize, sleep, subVector3, tellMessage } from "utils";
-export function register() {
-    commands.set('cut', {
-        function: cut,
-        description: "Cuts a region to the player's clipboard",
-        extDescription: "Cuts a region to the player's clipboard",
-        usage: [
-            ""
-        ]
-    });
-}
+commands.set('cut', {
+    function: cut,
+    description: "Cuts a region to the player's clipboard",
+    extDescription: "Cuts a region to the player's clipboard",
+    usage: [
+        ""
+    ]
+});
 async function cut(args, player) {
     if (!playerHasSel(player)) {
         return;

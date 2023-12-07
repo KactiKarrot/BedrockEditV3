@@ -4,17 +4,14 @@ import { commands } from "commands";
 import { pos1Map, pos2Map } from "main";
 import { getPermFromHand, tellError, addVector3, diffVector3, addHistoryEntry, minVector3, setBlockAt, tellMessage } from "utils";
 
-export function register() {
-    commands.set('dome', {
-        alias: "",
-        function: dome,
-        description: "Generates a dome",
-        extDescription: "Generates a dome between Position 1 and Position 2\nmode: Whether the dome is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
-        usage: [
-            "[mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
-        ]
-    })
-}
+commands.set('dome', {
+    function: dome,
+    description: "Generates a dome",
+    extDescription: "Generates a dome between Position 1 and Position 2\nmode: Whether the dome is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
+    usage: [
+        "[mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
+    ]
+})
 
 function dome(args: string[], player: Player) {
     let mode = 'filled'

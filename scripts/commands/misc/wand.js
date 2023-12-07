@@ -2,17 +2,15 @@ import { ItemTypes, world } from "@minecraft/server";
 import { commands } from "commands";
 import { currentWand, WAND_NAME, setWand } from "main";
 import { tellMessage, tellError } from "utils";
-export function register() {
-    commands.set('wand', {
-        alias: "",
-        function: wand,
-        description: "Sets or gives the wand item",
-        extDescription: "Sets or gives the wand item\nitemName: Name of the item to set as the wand. Use 'default' to reset. If not given the player is given the current wand item.",
-        usage: [
-            "[itemName: Item]"
-        ]
-    });
-}
+commands.set('wand', {
+    alias: "",
+    function: wand,
+    description: "Sets or gives the wand item",
+    extDescription: "Sets or gives the wand item\nitemName: Name of the item to set as the wand. Use 'default' to reset. If not given the player is given the current wand item.",
+    usage: [
+        "[itemName: Item]"
+    ]
+});
 function wand(args, player) {
     if (args.length < 1) {
         player.getComponent('minecraft:inventory').container.addItem(currentWand.clone());

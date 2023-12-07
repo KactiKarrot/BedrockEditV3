@@ -4,17 +4,16 @@ import { commands } from "commands";
 import { selMap, compSelMap, addCuboid, compApplyToAllBlocks } from "selection";
 import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, sleep, tellMessage } from "utils";
 
-export function register() {
-    commands.set('cube', {
-        alias: "box",
-        function: cube,
-        description: "Generates a cube",
-        extDescription: "Generates a cube between Position 1 and Position 2\nmode: Whether the cube is filled in or hollow\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
-        usage: [
-            "[mode: hollow | filled] [tileName: Block]"
-        ]
-    })
-}
+
+commands.set('cube', {
+    alias: "box",
+    function: cube,
+    description: "Generates a cube",
+    extDescription: "Generates a cube between Position 1 and Position 2\nmode: Whether the cube is filled in or hollow\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
+    usage: [
+        "[mode: hollow | filled] [tileName: Block]"
+    ]
+})
 
 function cube(args: string[], player: Player) {
     if ((selMap.get(player.name)?.from == undefined)) {

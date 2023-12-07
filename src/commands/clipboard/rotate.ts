@@ -3,16 +3,14 @@ import { commands } from "commands";
 import { clipMap, relPosMap } from "main";
 import { tellError, getClipSize, rotatePerm, tellMessage } from "utils";
 
-export function register() {
-    commands.set('rotate', {
-        function: rotate,
-        description: "Rotates the clipboard",
-        extDescription: "Rotates the clipboard\nangle: Angle to rotate clipboard (must be 90, 180, or 270)",
-        usage: [
-            "<rotationAngle: angle>"
-        ]
-    })
-}
+commands.set('rotate', {
+    function: rotate,
+    description: "Rotates the clipboard",
+    extDescription: "Rotates the clipboard\nangle: Angle to rotate clipboard (must be 90, 180, or 270)",
+    usage: [
+        "<rotationAngle: angle>"
+    ]
+})
 
 function rotate(args, player: Player) {
     if (args.length < 1) {

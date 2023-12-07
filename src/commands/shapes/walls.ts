@@ -4,17 +4,14 @@ import { commands } from "commands";
 import { selMap, compSelMap, addCuboid, Axis, compApplyToAllBlocks } from "selection";
 import { tellError, getPermFromHand, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, sleep, tellMessage } from "utils";
 
-export function register() {
-    commands.set('walls', {
-        alias: "",
-        function: walls,
-        description: "Generates four walls",
-        extDescription: "Generates four walls between Position 1 and Position 2\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
-        usage: [
-            "[tileName: Block]"
-        ]
-    })
-}
+commands.set('walls', {
+    function: walls,
+    description: "Generates four walls",
+    extDescription: "Generates four walls between Position 1 and Position 2\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
+    usage: [
+        "[tileName: Block]"
+    ]
+})
 
 function walls(args: string[], player: Player) {
     if ((selMap.get(player.name)?.from == undefined)) {

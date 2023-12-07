@@ -3,17 +3,15 @@ import { commands } from "commands";
 import { clipMap, relPosMap } from "main";
 import { getClipSize, rotatePerm, tellError, tellMessage } from "utils";
 
-export function register() {
-    commands.set('mirror', {
-        alias: "flip",
-        function: mirror,
-        description: "Mirrors the clipboard",
-        extDescription: "Mirrors the clipboard\naxis: Axis to mirror clipboard over",
-        usage: [
-            "<mirrorAxis: x | z>"
-        ]
-    })
-}
+commands.set('mirror', {
+    alias: "flip",
+    function: mirror,
+    description: "Mirrors the clipboard",
+    extDescription: "Mirrors the clipboard\naxis: Axis to mirror clipboard over",
+    usage: [
+        "<mirrorAxis: x | z>"
+    ]
+})
 
 function mirror(args, player: Player) {
     if (args.length < 1) {

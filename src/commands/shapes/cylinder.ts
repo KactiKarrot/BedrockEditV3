@@ -4,17 +4,15 @@ import { commands } from "commands";
 import { pos1Map, pos2Map } from "main";
 import { getPermFromHand, tellError, addVector3, diffVector3, addHistoryEntry, minVector3, setBlockAt, tellMessage } from "utils";
 
-export function register() {
-    commands.set('cylinder', {
-        alias: "cyl",
-        function: cylinder,
-        description: "Generates a cylinder",
-        extDescription: "Generates a cylinder between Position 1 and Position 2\ndirection: Direction for the faces of the cylinder to face (default up/down)\nmode: Whether the cylinder is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
-        usage: [
-            "[direction: ud | ns | ew] [mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
-        ]
-    })
-}
+commands.set('cylinder', {
+    alias: "cyl",
+    function: cylinder,
+    description: "Generates a cylinder",
+    extDescription: "Generates a cylinder between Position 1 and Position 2\ndirection: Direction for the faces of the cylinder to face (default up/down)\nmode: Whether the cylinder is filled, has thin edges, or thick edges\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
+    usage: [
+        "[direction: ud | ns | ew] [mode: thick | thin | filled] [fillFaces: boolean] [tileName: Block]"
+    ]
+})
 
 function cylinder(args: string[], player: Player) {
     let direction = 'ud';

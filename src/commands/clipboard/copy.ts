@@ -5,17 +5,15 @@ import { relPosMap } from "main";
 import { selMap, compSelMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selection";
 import { tellError, floorVector3, multiplyVector3, subVector3, minVector3, setClipSize, setClipAt, tellMessage } from "utils";
 
-export function register() {
-    commands.set('copy', {
-        alias: "cp",
-        function: copy,
-        description: "Copies a region to the player's clipboard",
-        extDescription: "Copies a region to the player's clipboard",
-        usage: [
-            ""
-        ]
-    })
-}
+commands.set('copy', {
+    alias: "cp",
+    function: copy,
+    description: "Copies a region to the player's clipboard",
+    extDescription: "Copies a region to the player's clipboard",
+    usage: [
+        ""
+    ]
+})
 
 function copy(args, player: Player) {
     if (!selMap.has(player.name) || selMap.get(player.name) == undefined || selMap.get(player.name).from == undefined) {

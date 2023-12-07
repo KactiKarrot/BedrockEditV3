@@ -3,19 +3,17 @@ import { commands } from "commands";
 import { PREFIX } from "main";
 import { getByAlias, tellError, tellMessage } from "utils";
 
-export function register() {
-    commands.set('help', {
-        alias: "?",
-        function: help,
-        description: "Lists all commands and what they do",
-        extDescription: "Lists all commands and what they do",
-        usage: [
-            "",
-            "[page: int]",
-            "[command: CommandName]"
-        ]
-    })
-}
+commands.set('help', {
+    alias: "?",
+    function: help,
+    description: "Lists all commands and what they do",
+    extDescription: "Lists all commands and what they do",
+    usage: [
+        "",
+        "[page: int]",
+        "[command: CommandName]"
+    ]
+})
 
 function help(args: string[], player: Player) {
     if (args.length > 0 && isNaN(parseInt(args[0]))) {
