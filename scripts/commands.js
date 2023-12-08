@@ -1,6 +1,6 @@
 import { BlockVolumeUtils, CompoundBlockVolume } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
-import { addCuboid, addEllipsoid, compSelMap, selMap, subtractCuboid, subtractEllipsoid } from "selection";
+import { addCuboid, addEllipsoid, compSelMap, selMap, subtractCuboid, subtractEllipsoid } from "selectionUtils";
 import { floorVector3, multiplyVector3, tellError, tellMessage } from "utils";
 /* Need to add:
 - Line (curved line, use circle algorithm)

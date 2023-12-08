@@ -1,7 +1,7 @@
 import { Player, Direction, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
-import { compSelMap, selMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selection";
+import { compSelMap, selMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selectionUtils";
 import { tellError, getPrimaryDirection, rotateDirection, floorVector3, multiplyVector3, addHistoryEntry, shiftVector3, getZeroVector3, sleep, tellMessage } from "utils";
 
 commands.set('stack', {

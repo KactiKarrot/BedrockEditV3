@@ -1,6 +1,6 @@
 import { BlockVolumeUtils } from "@minecraft/server";
 import { commands } from "commands";
-import { compSelMap, selMap, applyToAllBlocks } from "selection";
+import { compSelMap, selMap, applyToAllBlocks } from "selectionUtils";
 import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, setBlockAt, sleep, tellMessage, subVector3 } from "utils";
 commands.set('outline', {
     function: outline,

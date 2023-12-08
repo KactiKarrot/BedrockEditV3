@@ -8,7 +8,7 @@ import "commands/selection/register";
 import "commands/region/register";
 import "commands/clipboard/register";
 import "commands/shapes/register";
-import { compSelMap, selMap } from "selection";
+import { compSelMap, selMap } from "selectionUtils";
 export const PREFIX = "./";
 export const VERSION = "3.0.1-beta1";
 export let relPosMap = new Map();

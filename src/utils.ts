@@ -1,7 +1,7 @@
 import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent, Vector2, world, system, BlockVolume, BlockVolumeUtils} from "@minecraft/server"
 import { commands } from "commands";
 import { historyMap, clipMap, HistoryEntry, historyIndexMap, historyEnabled } from "main"
-import { Axis, selMap } from "selection";
+import { Axis, selMap } from "selectionUtils";
 
 const positiveVector3 = {x: 1, y: 1, z: 1};
 const zeroVector3 = {x: 0, y: 0, z: 0};

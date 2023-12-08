@@ -1,5 +1,5 @@
 import { commands } from "commands";
-import { selMap, compSelMap } from "selection";
+import { selMap, compSelMap } from "selectionUtils";
 import { tellMessage } from "utils";
 commands.set('deselect', {
     alias: "desel",

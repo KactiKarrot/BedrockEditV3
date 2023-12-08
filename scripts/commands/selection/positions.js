@@ -1,6 +1,6 @@
 import { BlockVolumeUtils } from "@minecraft/server";
 import { commands } from "commands";
-import { selMap } from "selection";
+import { selMap } from "selectionUtils";
 import { tellError, floorVector3, compareVector3, tellMessage } from "utils";
 commands.set('pos1', {
     alias: "p1",

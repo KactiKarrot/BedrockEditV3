@@ -1,7 +1,7 @@
 import { Player, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
-import { compSelMap, selMap, addCuboid, compApplyToAllBlocks, applyToAllBlocks } from "selection";
+import { compSelMap, selMap, addCuboid, compApplyToAllBlocks, applyToAllBlocks } from "selectionUtils";
 import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, sleep, tellMessage, subVector3 } from "utils";
 
 commands.set('outline', {

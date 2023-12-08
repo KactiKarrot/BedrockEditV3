@@ -1,6 +1,6 @@
 import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack } from "@minecraft/server";
 import { commands } from "commands";
-import { compareVector3, getByAlias, tellError } from "utils";
+import { getByAlias, tellError } from "utils";
 import * as tool from "./tool";
 import "commands/misc/register";
 import "commands/history/register";
@@ -8,7 +8,7 @@ import "commands/selection/register";
 import "commands/region/register";
 import "commands/clipboard/register";
 import "commands/shapes/register";
-import { compSelMap, selMap } from "selection";
+import { compSelMap, selMap } from "selectionUtils";
 
 export const PREFIX = "./";
 

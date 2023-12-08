@@ -1,6 +1,6 @@
 import { BlockPermutation, } from "@minecraft/server";
 import { commands } from "commands";
-import { compApplyToAllBlocks, compSelMap } from "selection";
+import { compApplyToAllBlocks, compSelMap } from "selectionUtils";
 import { addHistoryEntry, addVector3, playerHasSel, setBlockAt, setClipSize, sleep, subVector3, tellMessage } from "utils";
 commands.set('cut', {
     function: cut,

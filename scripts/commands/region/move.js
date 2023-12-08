@@ -1,7 +1,7 @@
 import { Direction, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
-import { compSelMap, selMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selection";
+import { compSelMap, selMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selectionUtils";
 import { tellError, getPrimaryDirection, rotateDirection, floorVector3, multiplyVector3, addHistoryEntry, setBlockAt, sleep, shiftVector3, getZeroVector3, tellMessage } from "utils";
 commands.set('move', {
     alias: "mv",

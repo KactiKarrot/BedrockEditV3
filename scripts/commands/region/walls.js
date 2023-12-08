@@ -1,7 +1,7 @@
 import { BlockTypes, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
-import { selMap, compSelMap, addCuboid, Axis, compApplyToAllBlocks } from "selection";
+import { selMap, compSelMap, addCuboid, Axis, compApplyToAllBlocks } from "selectionUtils";
 import { tellError, getPermFromHand, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, sleep, tellMessage } from "utils";
 commands.set('walls', {
     function: walls,

@@ -1,6 +1,6 @@
 import { commands } from "commands";
 import { clipMap, pos1Map, relPosMap } from "main";
-import { selMap } from "selection";
+import { selMap } from "selectionUtils";
 import { addHistoryEntry, addVector3, floorVector3, getClipAt, getClipSize, setBlockAt, sleep, subVector3, tellError, tellMessage } from "utils";
 commands.set('paste', {
     function: paste,
