@@ -1,5 +1,4 @@
 import "./cube";
-import "./walls";
 import "./cylinder";
 import "./ellipsoid";
 import "./dome";

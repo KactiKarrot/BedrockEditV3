@@ -1,19 +1,19 @@
 import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack } from "@minecraft/server";
-import { commands, pos1, pos2 } from "commands";
-import { addVector3, compareVector3, diffVector3, getByAlias, minVector3, tellError } from "utils";
+import { commands } from "commands";
+import { compareVector3, getByAlias, tellError } from "utils";
 import * as tool from "./tool";
-import "commands/misc/register"
-import "commands/history/register"
-import "commands/selection/register"
-import "commands/clipboard/register"
-import "commands/shapes/register"
+import "commands/misc/register";
+import "commands/history/register";
+import "commands/selection/register";
+import "commands/region/register";
+import "commands/clipboard/register";
+import "commands/shapes/register";
+import { compSelMap, selMap } from "selection";
 
 export const PREFIX = "./";
 
 export const VERSION = "3.0.1-beta1";
 
-export let pos1Map = new Map<string, Vector3>(); // <playerName, position>
-export let pos2Map = new Map<string, Vector3>(); // <playerName, position>
 export let relPosMap = new Map<string, Vector3>();
 export let clipMap = new Map<string, Array<Array<Array<BlockPermutation>>>>(); // <playerName, x<y<z<data>>>>
 
@@ -140,55 +140,53 @@ system.runInterval(() => {
     }
 })
 
-system.runInterval(() => {
+// Temporary until fix particles for new selection mode
+// system.runInterval(() => {
+//     if (!showParticles) {
+//         return;
+//     }
 
+//     world.getAllPlayers().forEach((p) => {
+//         if (!pos1Map.has(p.name) || !pos2Map.has(p.name)) {
+//             return;
+//         }
+//         let min = minVector3(pos1Map.get(p.name), pos2Map.get(p.name));
+//         let diff = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(p.name), pos2Map.get(p.name)))
+//         for (let x = 0; x < diff.x; x++) {
+//             for (let y = 0; y < diff.y; y++) {
+//                 for (let z = 0; z < diff.z; z++) {
+//                     if (compareVector3(pos1Map.get(p.name), addVector3({x: x, y: y, z: z}, min)) || compareVector3(pos2Map.get(p.name), addVector3({x: x, y: y, z: z}, min)).valueOf() == true) {
+//                         p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y}.0 ${min.z + z + 1}.0`)
+//                         p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y}.0 ${min.z + z}.0`)
+//                         p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y + 1}.0 ${min.z + z + 1}.0`)
+//                         p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y + 1}.0 ${min.z + z}.0`)
+//                         p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y}.0 ${min.z + z + 1}.0`)
+//                         p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y}.0 ${min.z + z}.0`)
+//                         p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y+ 1}.0 ${min.z + z + 1}.0`)
+//                         p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y + 1}.0 ${min.z + z}.0`)
+//                     } else if (
+//                         ((x == 0 || x == diff.x - 1) && (y == 0 || y == diff.y - 1)) ||
+//                         ((x == 0 || x == diff.x - 1) && (z == 0 || z == diff.z - 1)) || 
+//                         ((z == 0 || z == diff.z - 1) && (y == 0 || y == diff.y - 1))
+//                     ) {
+//                         p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.5} ${min.z + z + 0.0}.0`)
+//                         p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.5} ${min.z + z + 1.0}.0`)
+
+//                         p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.0}.0 ${min.z + z + 0.5}`)
+//                         p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 1.0}.0 ${min.z + z + 0.5}`)
+
+//                         p.runCommand(`particle be:outline-red ${min.x + x + 0.0}.0 ${min.y + y + 0.5} ${min.z + z + 0.5}`)
+//                         p.runCommand(`particle be:outline-red ${min.x + x + 1.0}.0 ${min.y + y + 0.5} ${min.z + z + 0.5}`)
+
+
+//                         // p.runCommand(`particle be:outline-red ${min.x + x + 0.0}.0 ${min.y + y + 0.0} ${min.z + z + 0.0}`)
+//                     }
+//                 }
+//             }
+//         }
+//     })
     
-
-    if (!showParticles) {
-        return;
-    }
-
-    world.getAllPlayers().forEach((p) => {
-        if (!pos1Map.has(p.name) || !pos2Map.has(p.name)) {
-            return;
-        }
-        let min = minVector3(pos1Map.get(p.name), pos2Map.get(p.name));
-        let diff = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(p.name), pos2Map.get(p.name)))
-        for (let x = 0; x < diff.x; x++) {
-            for (let y = 0; y < diff.y; y++) {
-                for (let z = 0; z < diff.z; z++) {
-                    if (compareVector3(pos1Map.get(p.name), addVector3({x: x, y: y, z: z}, min)) || compareVector3(pos2Map.get(p.name), addVector3({x: x, y: y, z: z}, min)).valueOf() == true) {
-                        p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y}.0 ${min.z + z + 1}.0`)
-                        p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y}.0 ${min.z + z}.0`)
-                        p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y + 1}.0 ${min.z + z + 1}.0`)
-                        p.runCommand(`particle be:outline-purple ${min.x + x + 1}.0 ${min.y + y + 1}.0 ${min.z + z}.0`)
-                        p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y}.0 ${min.z + z + 1}.0`)
-                        p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y}.0 ${min.z + z}.0`)
-                        p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y+ 1}.0 ${min.z + z + 1}.0`)
-                        p.runCommand(`particle be:outline-purple ${min.x + x}.0 ${min.y + y + 1}.0 ${min.z + z}.0`)
-                    } else if (
-                        ((x == 0 || x == diff.x - 1) && (y == 0 || y == diff.y - 1)) ||
-                        ((x == 0 || x == diff.x - 1) && (z == 0 || z == diff.z - 1)) || 
-                        ((z == 0 || z == diff.z - 1) && (y == 0 || y == diff.y - 1))
-                    ) {
-                        p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.5} ${min.z + z + 0.0}.0`)
-                        p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.5} ${min.z + z + 1.0}.0`)
-
-                        p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 0.0}.0 ${min.z + z + 0.5}`)
-                        p.runCommand(`particle be:outline-red ${min.x + x + 0.5} ${min.y + y + 1.0}.0 ${min.z + z + 0.5}`)
-
-                        p.runCommand(`particle be:outline-red ${min.x + x + 0.0}.0 ${min.y + y + 0.5} ${min.z + z + 0.5}`)
-                        p.runCommand(`particle be:outline-red ${min.x + x + 1.0}.0 ${min.y + y + 0.5} ${min.z + z + 0.5}`)
-
-
-                        // p.runCommand(`particle be:outline-red ${min.x + x + 0.0}.0 ${min.y + y + 0.0} ${min.z + z + 0.0}`)
-                    }
-                }
-            }
-        }
-    })
-    
-}, 15)
+// }, 15)
 
 world.beforeEvents.chatSend.subscribe((data) => {
     const player = data.sender;
@@ -247,7 +245,7 @@ system.afterEvents.scriptEventReceive.subscribe((data) => {
 
 world.beforeEvents.playerBreakBlock.subscribe((data) => {
     if (data.player.hasTag("BEUser") && (data.player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(data.player.selectedSlot)?.typeId == currentWand.typeId) {
-        system.run(() => {pos1(['facing'], data.player)});
+        system.run(() => {commands.get('pos1').function(['facing'], data.player)});
         data.cancel = true;
     }
 })
@@ -256,14 +254,14 @@ world.afterEvents.entityHitBlock.subscribe((data) => {
     if (data.damagingEntity.typeId == 'minecraft:player') {
         let player = data.damagingEntity as Player;
         if (player.hasTag("BEUser") && (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId == currentWand.typeId) {
-            pos1(['facing'], player);
+            commands.get('pos1').function(['facing'], player);
         }
     }
 })
 
 world.afterEvents.playerInteractWithBlock.subscribe((data) => {
-    if(data.player.hasTag("BEUser") && data.itemStack?.typeId == currentWand.typeId && !compareVector3(data.block.location, pos2Map.get(data.player.name))) {
-        pos2(['facing'], data.player);
+    if(data.player.hasTag("BEUser") && data.itemStack?.typeId == currentWand.typeId) {
+        commands.get('pos2').function(['facing'], data.player);
     }
 })
 
@@ -275,8 +273,8 @@ world.afterEvents.playerSpawn.subscribe((data) => {
 })
 
 world.afterEvents.playerLeave.subscribe((data) => {
-    pos1Map.delete(data.playerName);
-    pos2Map.delete(data.playerName);
+    selMap.delete(data.playerName);
+    compSelMap.delete(data.playerName);
     relPosMap.delete(data.playerName);
     clipMap.delete(data.playerName);
 })
