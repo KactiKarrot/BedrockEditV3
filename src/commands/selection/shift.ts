@@ -1,24 +1,20 @@
 import { Player, Direction } from "@minecraft/server";
 import { commands } from "commands";
-import { pos1Map, pos2Map } from "main";
-import { tellError, getPrimaryDirection, rotateDirection, shiftVector3, tellMessage } from "utils";
+import { compSelMap } from "selectionUtils";
+import { tellError, getPrimaryDirection, rotateDirection, shiftVector3, tellMessage, getPosVector3 } from "utils";
 
 commands.set('shift', {
     function: shift,
     description: "Moves the selection",
-    extDescription: "Moves the selection\ndistance: Distance to move selection (defaults to 1)\ndirection: Direciton to move selection (defaults to me/facing/forward)",
+    extDescription: "Moves the selection\ndistance: Distance to move selection (defaults to 1)\ndirection: Direction to move selection (defaults to me/facing/forward)",
     usage: [
         "[distance: int] [direction: me|facing|forward|right|backward|left|north|east|south|west|up|down]"
     ]
 })
 
 function shift(args: string[], player: Player) {
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
-        tellError(player, "Position 1 not set!");
-        return;
-    }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
-        tellError(player, "Position 2 not set!");
+    if (!compSelMap.has(player.name)) {
+        tellError(player, 'Compound selection not set');
         return;
     }
     let amount = 1
@@ -78,7 +74,6 @@ function shift(args: string[], player: Player) {
             }
         }
     }
-    pos1Map.set(player.name, shiftVector3(pos1Map.get(player.name), direction, amount));
-    pos2Map.set(player.name, shiftVector3(pos2Map.get(player.name), direction, amount));
+    compSelMap.get(player.name).translateOrigin(shiftVector3(getPosVector3(), direction, amount))
     tellMessage(player, `§aShifted selection ${amount} blocks ${direction}`)
 }

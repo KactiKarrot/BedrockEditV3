@@ -1,6 +1,6 @@
 import { Player } from "@minecraft/server";
 import { commands } from "commands";
-import { pos1Map, pos2Map } from "main";
+import { selMap } from "selectionUtils";
 import { tellError, tellMessage } from "utils";
 
 commands.set('inset', {
@@ -13,11 +13,11 @@ commands.set('inset', {
 })
 
 function inset(args: string[], player: Player) {
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+    if ((selMap.get(player.name)?.from == undefined)) {
         tellError(player, "Position 1 not set!");
         return;
     }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+    if ((selMap.get(player.name)?.to == undefined)) {
         tellError(player, "Position 2 not set!");
         return;
     }
@@ -41,36 +41,32 @@ function inset(args: string[], player: Player) {
             v = true;
         }
     }
-    let p1 = pos1Map.get(player.name);
-    let p2 = pos2Map.get(player.name);
     for (let i = 0; i < amount; i++) {
         if (h) {
-            if (pos1Map.get(player.name).x > pos2Map.get(player.name).x) {
-                p1.x--;
-                p2.x++;
-            } else if (pos1Map.get(player.name).x < pos2Map.get(player.name).x) {
-                p1.x++;
-                p2.x--;
+            if (selMap.get(player.name).from.x > selMap.get(player.name).to.x) {
+                selMap.get(player.name).from.x--;
+                selMap.get(player.name).to.x++;
+            } else if (selMap.get(player.name).from.x < selMap.get(player.name).to.x) {
+                selMap.get(player.name).from.x++;
+                selMap.get(player.name).to.x--;
             }
-            if (pos1Map.get(player.name).z > pos2Map.get(player.name).z) {
-                p1.z--;
-                p2.z++;
-            } else if (pos1Map.get(player.name).z < pos2Map.get(player.name).z) {
-                p1.z++;
-                p2.z--;
+            if (selMap.get(player.name).from.z > selMap.get(player.name).to.z) {
+                selMap.get(player.name).from.z--;
+                selMap.get(player.name).to.z++;
+            } else if (selMap.get(player.name).from.z < selMap.get(player.name).to.z) {
+                selMap.get(player.name).from.z++;
+                selMap.get(player.name).to.z--;
             }
         }
         if (v) {
-            if (pos1Map.get(player.name).y > pos2Map.get(player.name).y) {
-                p1.y--;
-                p2.y++;
-            } else if (pos1Map.get(player.name).y < pos2Map.get(player.name).y) {
-                p1.y++;
-                p2.y--;
+            if (selMap.get(player.name).from.y > selMap.get(player.name).to.y) {
+                selMap.get(player.name).from.y--;
+                selMap.get(player.name).to.y++;
+            } else if (selMap.get(player.name).from.y < selMap.get(player.name).to.y) {
+                selMap.get(player.name).from.y++;
+                selMap.get(player.name).to.y--;
             }
         }
     }
-    pos1Map.set(player.name, p1);
-    pos2Map.set(player.name, p2);
     tellMessage(player, `§aSelection inset ${amount} blocks`);
 }

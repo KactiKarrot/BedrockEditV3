@@ -1,6 +1,6 @@
 import { BlockTypes, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
 import { commands } from "commands";
-import { selMap, compSelMap, addCuboid, compApplyToAllBlocks } from "selectionUtils";
+import { selMap, addCuboid, compApplyToAllBlocks } from "selectionUtils";
 import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, sleep, tellMessage } from "utils";
 commands.set('cube', {
     alias: "box",
@@ -37,16 +37,15 @@ function cube(args, player) {
         perm = getPermFromStr(args[1], player);
     }
     addHistoryEntry(player.name);
-    compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)));
-    addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 })), mode);
+    let vol = new CompoundBlockVolume(floorVector3(player.location));
+    addCuboid(vol, BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(vol.getOrigin(), { x: -1, y: -1, z: -1 })), mode);
     let count = 0;
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
+    compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
         setBlockAt(player, l, perm.clone());
         count++;
         if (count % 5000 == 0) {
             await sleep(1);
         }
     });
-    compSelMap.delete(player.name);
     tellMessage(player, `§aSuccessfully generated cube (${count} blocks)`);
 }

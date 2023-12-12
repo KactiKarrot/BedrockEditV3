@@ -1,23 +1,23 @@
 import { Player, Direction } from "@minecraft/server";
 import { commands } from "commands";
-import { pos1Map, pos2Map } from "main";
+import { selMap } from "selectionUtils";
 import { tellError, getPrimaryDirection, rotateDirection, tellMessage } from "utils";
 
 commands.set('shrink', {
     function: shrink,
     description: "Shrinks the selection",
-    extDescription: "Shrinks the selection\namount: Amount to shrink selection (defaults to 1)\ndirection: Direciton to move selection (defaults to me/facing/forward)\noppositeAmount: Amount to shrink selection in the opposite direciton (defaults to 0)",
+    extDescription: "Shrinks the selection\namount: Amount to shrink selection (defaults to 1)\ndirection: Direction to move selection (defaults to me/facing/forward)\noppositeAmount: Amount to shrink selection in the opposite direction (defaults to 0)",
     usage: [
         "[amount: int] [direction: me|facing|forward|right|backward|left|north|east|south|west|up|down] [oppositeAmount: int]"
     ]
 })
 
 function shrink(args: string[], player: Player) {
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+    if ((selMap.get(player.name)?.from == undefined)) {
         tellError(player, "Position 1 not set!");
         return;
     }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+    if ((selMap.get(player.name)?.to == undefined)) {
         tellError(player, "Position 2 not set!");
         return;
     }
@@ -87,183 +87,93 @@ function shrink(args: string[], player: Player) {
         oppositeAmount = parseInt(args[2]);
     }
     switch (direction) {
+        case Direction.South: {
+            amount = -amount;
+            oppositeAmount = -oppositeAmount
+        }
         case Direction.North: {
-            if (pos1Map.get(player.name).z == pos2Map.get(player.name).z) {
-                tellError(player, `Can't shrink selection any more`);
-                return;
-            }
-            if (pos1Map.get(player.name).z > pos2Map.get(player.name).z) {
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x,
-                    y: pos1Map.get(player.name).y,
-                    z: pos1Map.get(player.name).z - amount
-                })
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x,
-                    y: pos2Map.get(player.name).y,
-                    z: pos2Map.get(player.name).z + oppositeAmount
-                })
+            if (selMap.get(player.name).from.z > selMap.get(player.name).to.z) {
+                selMap.get(player.name).from = {
+                    x: selMap.get(player.name).from.x,
+                    y: selMap.get(player.name).from.y,
+                    z: selMap.get(player.name).from.z - amount
+                }
+                selMap.get(player.name).to = {
+                    y: selMap.get(player.name).to.y,
+                    x: selMap.get(player.name).to.x,
+                    z: selMap.get(player.name).to.z + oppositeAmount
+                }
             } else {
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x,
-                    y: pos2Map.get(player.name).y,
-                    z: pos2Map.get(player.name).z - amount
-                })
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x,
-                    y: pos1Map.get(player.name).y,
-                    z: pos1Map.get(player.name).z + oppositeAmount
-                })
+                selMap.get(player.name).to = {
+                    x: selMap.get(player.name).from.x,
+                    y: selMap.get(player.name).from.y,
+                    z: selMap.get(player.name).from.z - amount
+                }
+                selMap.get(player.name).from = {
+                    y: selMap.get(player.name).to.y,
+                    x: selMap.get(player.name).to.x,
+                    z: selMap.get(player.name).to.z + oppositeAmount
+                }
             }
             break;
         }
         case Direction.East: {
-            if (pos1Map.get(player.name).x == pos2Map.get(player.name).x) {
-                tellError(player, `Can't shrink selection any more`);
-                return;
-            }
-            if (pos1Map.get(player.name).x < pos2Map.get(player.name).x) {
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x + amount,
-                    y: pos1Map.get(player.name).y,
-                    z: pos1Map.get(player.name).z
-                })
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x - oppositeAmount,
-                    y: pos2Map.get(player.name).y,
-                    z: pos2Map.get(player.name).z
-                })
-            } else {
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x + amount,
-                    y: pos2Map.get(player.name).y,
-                    z: pos2Map.get(player.name).z
-                })
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x - oppositeAmount,
-                    y: pos1Map.get(player.name).y,
-                    z: pos1Map.get(player.name).z
-                })
-            }
-            break;
-        }
-        case Direction.South: {
-            if (pos1Map.get(player.name).z == pos2Map.get(player.name).z) {
-                tellError(player, `Can't shrink selection any more`);
-                return;
-            }
-            if (pos1Map.get(player.name).z < pos2Map.get(player.name).z) {
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x,
-                    y: pos1Map.get(player.name).y,
-                    z: pos1Map.get(player.name).z + amount
-                })
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x,
-                    y: pos2Map.get(player.name).y,
-                    z: pos2Map.get(player.name).z + oppositeAmount
-                })
-                pos1Map.set(player.name, {
-                    x: pos2Map.get(player.name).x,
-                    y: pos2Map.get(player.name).y,
-                    z: pos2Map.get(player.name).z + amount
-                })
-            } else {
-                pos2Map.set(player.name, {
-                    x: pos1Map.get(player.name).x,
-                    y: pos1Map.get(player.name).y,
-                    z: pos1Map.get(player.name).z + oppositeAmount
-                })
-            }
-            break;
+            amount = -amount;
+            oppositeAmount = -oppositeAmount
         }
         case Direction.West: {
-            if (pos1Map.get(player.name).x == pos2Map.get(player.name).x) {
-                tellError(player, `Can't shrink selection any more`);
-                return;
-            }
-            if (pos1Map.get(player.name).x > pos2Map.get(player.name).x) {
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x - amount,
-                    y: pos1Map.get(player.name).y,
-                    z: pos1Map.get(player.name).z
-                })
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x - oppositeAmount,
-                    y: pos2Map.get(player.name).y,
-                    z: pos2Map.get(player.name).z
-                })
+            if (selMap.get(player.name).from.x > selMap.get(player.name).to.x) {
+                selMap.get(player.name).from = {
+                    x: selMap.get(player.name).from.x - amount,
+                    y: selMap.get(player.name).from.y,
+                    z: selMap.get(player.name).from.z
+                }
+                selMap.get(player.name).to = {
+                    y: selMap.get(player.name).to.y,
+                    x: selMap.get(player.name).to.x + oppositeAmount,
+                    z: selMap.get(player.name).to.z
+                }
             } else {
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x - amount,
-                    y: pos2Map.get(player.name).y,
-                    z: pos2Map.get(player.name).z
-                })
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x - oppositeAmount,
-                    y: pos1Map.get(player.name).y,
-                    z: pos1Map.get(player.name).z
-                })
+                selMap.get(player.name).to = {
+                    x: selMap.get(player.name).from.x - amount,
+                    y: selMap.get(player.name).from.y,
+                    z: selMap.get(player.name).from.z
+                }
+                selMap.get(player.name).from = {
+                    y: selMap.get(player.name).to.y,
+                    x: selMap.get(player.name).to.x + oppositeAmount,
+                    z: selMap.get(player.name).to.z
+                }
             }
             break;
         }
         case Direction.Up: {
-            if (pos1Map.get(player.name).y == pos2Map.get(player.name).y) {
-                tellError(player, `Can't shrink selection any more`);
-                return;
-            }
-            if (pos1Map.get(player.name).y < pos2Map.get(player.name).y) {
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x,
-                    y: pos1Map.get(player.name).y + amount,
-                    z: pos1Map.get(player.name).z
-                })
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x,
-                    y: pos2Map.get(player.name).y + oppositeAmount,
-                    z: pos2Map.get(player.name).z
-                })
-            } else {
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x,
-                    y: pos2Map.get(player.name).y + amount,
-                    z: pos2Map.get(player.name).z
-                })
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x,
-                    y: pos1Map.get(player.name).y + oppositeAmount,
-                    z: pos1Map.get(player.name).z
-                })
-            }
-            break;
+            amount = -amount;
+            oppositeAmount = -oppositeAmount
         }
         case Direction.Down: {
-            if (pos1Map.get(player.name).y == pos2Map.get(player.name).y) {
-                tellError(player, `Can't shrink selection any more`);
-                return;
-            }
-            if (pos1Map.get(player.name).y > pos2Map.get(player.name).y) {
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x,
-                    y: pos1Map.get(player.name).y - amount,
-                    z: pos1Map.get(player.name).z
-                })
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x,
-                    y: pos2Map.get(player.name).y - oppositeAmount,
-                    z: pos2Map.get(player.name).z
-                })
+            if (selMap.get(player.name).from.y > selMap.get(player.name).to.y) {
+                selMap.get(player.name).from = {
+                    x: selMap.get(player.name).from.x,
+                    y: selMap.get(player.name).from.y - amount,
+                    z: selMap.get(player.name).from.z
+                }
+                selMap.get(player.name).to = {
+                    y: selMap.get(player.name).to.y + oppositeAmount,
+                    x: selMap.get(player.name).to.x,
+                    z: selMap.get(player.name).to.z
+                }
             } else {
-                pos2Map.set(player.name, {
-                    x: pos2Map.get(player.name).x,
-                    y: pos2Map.get(player.name).y - amount,
-                    z: pos2Map.get(player.name).z
-                })
-                pos1Map.set(player.name, {
-                    x: pos1Map.get(player.name).x,
-                    y: pos1Map.get(player.name).y - oppositeAmount,
-                    z: pos1Map.get(player.name).z
-                })
+                selMap.get(player.name).to = {
+                    x: selMap.get(player.name).from.x,
+                    y: selMap.get(player.name).from.y - amount,
+                    z: selMap.get(player.name).from.z
+                }
+                selMap.get(player.name).from = {
+                    y: selMap.get(player.name).to.y + oppositeAmount,
+                    x: selMap.get(player.name).to.x,
+                    z: selMap.get(player.name).to.z
+                }
             }
             break;
         }

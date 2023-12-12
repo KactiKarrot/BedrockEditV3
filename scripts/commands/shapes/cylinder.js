@@ -1,8 +1,7 @@
-import { BlockTypes, BlockPermutation } from "@minecraft/server";
-import { generateEllipse, ShapeModes } from "Circle-Generator/Controller";
+import { BlockTypes, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
 import { commands } from "commands";
-import { pos1Map, pos2Map } from "main";
-import { getPermFromHand, tellError, addVector3, diffVector3, addHistoryEntry, minVector3, setBlockAt, tellMessage } from "utils";
+import { Axis, addCylinder, compApplyToAllBlocks, selMap } from "selectionUtils";
+import { getPermFromHand, tellError, addHistoryEntry, setBlockAt, tellMessage, multiplyVector3, sleep } from "utils";
 commands.set('cylinder', {
     alias: "cyl",
     function: cylinder,
@@ -13,7 +12,9 @@ commands.set('cylinder', {
     ]
 });
 function cylinder(args, player) {
-    let direction = 'ud';
+    // tellMessage(player, 'This command is not yet implemented')
+    // return;
+    let direction = Axis.Y;
     let mode = 'filled';
     let perm = getPermFromHand(player);
     let fillFaces = true;
@@ -22,7 +23,6 @@ function cylinder(args, player) {
             tellError(player, `Invalid direction: ${args[0]}`);
             return;
         }
-        direction = args[0].toLowerCase();
     }
     if (args.length >= 2) {
         if (args[1].toLowerCase() != 'thick' && args[1].toLowerCase() != 'thin' && args[1].toLowerCase() != 'filled') {
@@ -43,82 +43,93 @@ function cylinder(args, player) {
         }
         perm = BlockPermutation.resolve(args[3]);
     }
-    if (!pos1Map.has(player.name) || pos1Map.get(player.name) == undefined) {
+    if ((selMap.get(player.name)?.from == undefined)) {
         tellError(player, "Position 1 not set!");
         return;
     }
-    if (!pos2Map.has(player.name) || pos2Map.get(player.name) == undefined) {
+    if ((selMap.get(player.name)?.to == undefined)) {
         tellError(player, "Position 2 not set!");
         return;
     }
-    let selSize = addVector3({ x: 1, y: 1, z: 1 }, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
-    let mat;
-    switch (direction) {
-        case 'ud': {
-            mat = generateEllipse(selSize.x, selSize.z, mode);
-            break;
-        }
-        case 'ns': {
-            mat = generateEllipse(selSize.x, selSize.y, mode);
-            break;
-        }
-        case 'ew': {
-            mat = generateEllipse(selSize.z, selSize.y, mode);
-            break;
-        }
-    }
-    let blockCount = 0;
-    addHistoryEntry(player.name);
-    for (let i = 0; i < selSize.x; i++) {
-        for (let j = 0; j < selSize.y; j++) {
-            for (let k = 0; k < selSize.z; k++) {
-                let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), { x: i, y: j, z: k });
-                switch (direction) {
-                    case 'ud': {
-                        if (fillFaces && (j == 0 || j == selSize.y - 1)) {
-                            let mat2 = generateEllipse(selSize.x, selSize.z, ShapeModes.filled);
-                            if (mat2[i][k].valueOf() == true) {
-                                setBlockAt(player, pos, perm.clone());
-                                blockCount++;
-                            }
-                        }
-                        else if (mat[i][k].valueOf() == true) {
-                            setBlockAt(player, pos, perm.clone());
-                            blockCount++;
-                        }
-                        break;
-                    }
-                    case 'ns': {
-                        if (fillFaces && (k == 0 || k == selSize.z - 1)) {
-                            let mat2 = generateEllipse(selSize.x, selSize.y, ShapeModes.filled);
-                            if (mat2[i][j].valueOf() == true) {
-                                setBlockAt(player, pos, perm.clone());
-                                blockCount++;
-                            }
-                        }
-                        else if (mat[i][j].valueOf() == true) {
-                            setBlockAt(player, pos, perm.clone());
-                            blockCount++;
-                        }
-                        break;
-                    }
-                    case 'ew': {
-                        if (fillFaces && (i == 0 || i == selSize.x - 1)) {
-                            let mat2 = generateEllipse(selSize.z, selSize.y, ShapeModes.filled);
-                            if (mat2[k][j].valueOf() == true) {
-                                setBlockAt(player, pos, perm.clone());
-                                blockCount++;
-                            }
-                        }
-                        else if (mat[k][j].valueOf() == true) {
-                            setBlockAt(player, pos, perm.clone());
-                            blockCount++;
-                        }
-                        break;
-                    }
-                }
+    // let selSize = addVector3({x: 1, y: 1, z: 1}, diffVector3(pos1Map.get(player.name), pos2Map.get(player.name)));
+    // let mat: boolean[][];
+    if (args.length >= 1) {
+        switch (args[0].toLowerCase()) {
+            case 'ud': {
+                direction = Axis.Y;
+                break;
+            }
+            case 'ns': {
+                direction = Axis.Z;
+                break;
+            }
+            case 'ew': {
+                direction = Axis.X;
+                break;
             }
         }
     }
-    tellMessage(player, `§aSuccessfully generated cylinder (${blockCount} blocks)`);
+    addHistoryEntry(player.name);
+    let vol = new CompoundBlockVolume(player.location);
+    addCylinder(vol, BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(vol.getOrigin(), { x: -1, y: -1, z: -1 })), mode, direction, fillFaces);
+    let count = 0;
+    compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
+        setBlockAt(player, l, perm.clone());
+        count++;
+        if (count % 5000 == 0) {
+            await sleep(1);
+        }
+    });
+    tellMessage(player, `§aSuccessfully generated cylinder (${count} blocks)`);
+    // let blockCount = 0;
+    // addHistoryEntry(player.name);
+    // for (let i = 0; i < selSize.x; i++) {
+    //     for (let j = 0; j < selSize.y; j++) {
+    //         for (let k = 0; k < selSize.z; k++) {
+    //             let pos = addVector3(minVector3(pos1Map.get(player.name), pos2Map.get(player.name)), {x: i, y: j, z: k})
+    //             switch(direction) {
+    //                 case 'ud': {
+    //                     if (fillFaces && (j == 0 || j == selSize.y - 1)) {
+    //                         let mat2 = generateEllipse(selSize.x, selSize.z, ShapeModes.filled);
+    //                         if (mat2[i][k].valueOf() == true) {
+    //                             setBlockAt(player, pos, perm.clone());
+    //                             blockCount++;
+    //                         }
+    //                     } else if (mat[i][k].valueOf() == true) {
+    //                         setBlockAt(player, pos, perm.clone());
+    //                         blockCount++;
+    //                     }
+    //                     break;
+    //                 }
+    //                 case 'ns': {
+    //                     if (fillFaces && (k == 0 || k == selSize.z - 1)) {
+    //                         let mat2 = generateEllipse(selSize.x, selSize.y, ShapeModes.filled);
+    //                         if (mat2[i][j].valueOf() == true) {
+    //                             setBlockAt(player, pos, perm.clone());
+    //                             blockCount++;
+    //                         }
+    //                     } else if (mat[i][j].valueOf() == true) {
+    //                         setBlockAt(player, pos, perm.clone());
+    //                         blockCount++;
+    //                     }
+    //                     break;
+    //                 }
+    //                 case 'ew': {
+    //                     if (fillFaces && (i == 0 || i == selSize.x - 1)) {
+    //                         let mat2 = generateEllipse(selSize.z, selSize.y, ShapeModes.filled);
+    //                         if (mat2[k][j].valueOf() == true) {
+    //                             setBlockAt(player, pos, perm.clone());
+    //                             blockCount++;
+    //                         }
+    //                     } else if (mat[k][j].valueOf() == true) {
+    //                         setBlockAt(player, pos, perm.clone());
+    //                         blockCount++;
+    //                     }
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // tellMessage(player, `§aSuccessfully generated cylinder (${blockCount} blocks)`);
 }

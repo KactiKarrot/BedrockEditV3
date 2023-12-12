@@ -8,6 +8,7 @@ import "commands/selection/register";
 import "commands/region/register";
 import "commands/clipboard/register";
 import "commands/shapes/register";
+
 import { compSelMap, selMap } from "selectionUtils";
 
 export const PREFIX = "./";

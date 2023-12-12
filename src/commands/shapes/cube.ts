@@ -42,11 +42,11 @@ function cube(args: string[], player: Player) {
     }
 
     addHistoryEntry(player.name);
-    compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)))
-    addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), {x: -1, y: -1, z: -1})), mode as ShapeModes);
+    let vol = new CompoundBlockVolume(floorVector3(player.location))
+    addCuboid(vol, BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(vol.getOrigin(), {x: -1, y: -1, z: -1})), mode as ShapeModes);
 
     let count = 0;
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
+    compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
         setBlockAt(player, l, perm.clone());
         count++;
         if (count % 5000 == 0) {
@@ -54,6 +54,5 @@ function cube(args: string[], player: Player) {
         }
     })
 
-    compSelMap.delete(player.name)
     tellMessage(player, `§aSuccessfully generated cube (${count} blocks)`)
 }

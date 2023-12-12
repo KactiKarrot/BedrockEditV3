@@ -49,6 +49,10 @@ function help(args: string[], player: Player) {
     let msg = `§2--- Showing help page ${startPage + 1} of ${Math.ceil(commands.size / 7)} (${PREFIX}help <page>) ---`;
     let i = 0;
     for (let [name, c] of commands.entries()) {
+        if (i < startPage * 7) {
+            i++;
+            continue;
+        }
         msg += `\n§r- ${PREFIX}${name}: §b${c.description}`
         if (i >= startPage * 7 + 6) {
             break;

@@ -15,8 +15,6 @@ export function tellMessage(player, msg) {
 }
 export function getByAlias(alias) {
     for (let [name, c] of commands.entries()) {
-        if (c.alias == undefined)
-            return undefined;
         if (c.alias == alias)
             return name;
     }

@@ -122,7 +122,6 @@ async function stack(args, player) {
             if (count % 1000 == 0) {
                 await sleep(1);
             }
-            player.sendMessage(`debug: ${JSON.stringify(l)} - [${l.x - min.x}][${l.y - min.y}][${l.z - min.z}]`);
             b.setPermutation(sel[l.x - min.x][l.y - min.y][l.z - min.z].clone());
         });
     }

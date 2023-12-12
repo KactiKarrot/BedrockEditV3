@@ -1,5 +1,5 @@
 import { commands } from "commands";
-import { clipMap, pos1Map, relPosMap } from "main";
+import { clipMap, relPosMap } from "main";
 import { selMap } from "selectionUtils";
 import { addHistoryEntry, addVector3, floorVector3, getClipAt, getClipSize, setBlockAt, sleep, subVector3, tellError, tellMessage } from "utils";
 commands.set('paste', {
@@ -20,7 +20,7 @@ async function paste(args, player) {
             tellError(player, "Position 1 not set!");
             return;
         }
-        relPosMap.set(player.name, subVector3(pos1Map.get(player.name), floorVector3(player.location)));
+        relPosMap.set(player.name, subVector3(selMap.get(player.name).from, floorVector3(player.location)));
     }
     tellMessage(player, `§aPasting...`);
     let clipSize = getClipSize(player.name);
