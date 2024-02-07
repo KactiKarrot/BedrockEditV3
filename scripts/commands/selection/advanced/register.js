@@ -1,1 +1,1 @@
-// import "./addCube"
+import "./addCube";

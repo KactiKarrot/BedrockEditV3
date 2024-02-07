@@ -5,6 +5,7 @@ import * as tool from "./tool";
 import "commands/misc/register";
 import "commands/history/register";
 import "commands/selection/register";
+import "commands/selection/advanced/register";
 import "commands/region/register";
 import "commands/clipboard/register";
 import "commands/shapes/register";
