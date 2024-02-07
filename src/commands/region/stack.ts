@@ -120,21 +120,33 @@ async function stack(args: string[], player: Player) {
         sel[l.x - min.x][l.y - min.y][l.z - min.z] = b.permutation.clone()
     }, () => {
         let count = 0;
-        for (let i = 0; i < amount; i++) {
+        //BROKEN
+        // Doing runjob inside for loop while modifying values the job uses causes it to only run the job one time
+
+        
+
+        function* stackgen(i: number) {
+            if (i >= amount) {
+                return;
+            }
+            i++;
             const deltaVec = shiftVector3(getZeroVector3(), direction, (direction == Direction.North || direction == Direction.South ? selSize.z : (direction == Direction.Up || direction == Direction.Down ? selSize.y : selSize.x)) + offset);
             compSelMap.get(player.name).translateOrigin(deltaVec);
             selMap.set(player.name, BlockVolumeUtils.translate(selMap.get(player.name), deltaVec))
             min = compSelMap.get(player.name).getMin();
-            system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+            compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+                b.setPermutation(sel[l.x - min.x][l.y - min.y][l.z - min.z].clone());
                 count++;
-                b.setPermutation(sel[l.x - min.x][l.y - min.y][l.z - min.z].clone())
-            }, () => {
-                compSelMap.get(player.name).setOrigin(origin);
-                if (!manualSel) {
-                    compSelMap.delete(player.name)
-                }
-                tellMessage(player, `§aStacked selection ${amount} times (${count} blocks)`);
-            }));
+            });
+            system.runJob(stackgen(i))
         }
+        
+        system.runJob(stackgen(0));
+
+        compSelMap.get(player.name).setOrigin(origin);
+        if (!manualSel) {
+            compSelMap.delete(player.name);
+        }
+        tellMessage(player, `§aStacked selection ${amount} times (${count} blocks)`);
     }));
 }
