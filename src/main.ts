@@ -1,6 +1,6 @@
 import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack } from "@minecraft/server";
 import { commands } from "commands";
-import { getByAlias, tellError } from "utils";
+import { getByAlias, getZeroVector3, tellError } from "utils";
 import * as tool from "./tool";
 import "commands/misc/register";
 import "commands/history/register";

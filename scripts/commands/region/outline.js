@@ -1,7 +1,7 @@
-import { BlockVolumeUtils } from "@minecraft/server";
+import { BlockVolumeUtils, system } from "@minecraft/server";
 import { commands } from "commands";
 import { compSelMap, selMap, applyToAllBlocks } from "selectionUtils";
-import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, setBlockAt, sleep, tellMessage, subVector3 } from "utils";
+import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, setBlockAt, tellMessage, subVector3 } from "utils";
 commands.set('outline', {
     function: outline,
     description: "Sets outline of selected region to given or held block",
@@ -30,18 +30,16 @@ async function outline(args, player) {
     // let count = 0;
     addHistoryEntry(player.name);
     let count = 0;
-    applyToAllBlocks(selMap.get(player.name), player.dimension, async (b, l) => {
-        let diff = BlockVolumeUtils.getSpan(selMap.get(player.name));
+    let diff = BlockVolumeUtils.getSpan(selMap.get(player.name));
+    system.runJob(applyToAllBlocks(selMap.get(player.name), player.dimension, (b, l) => {
         let pos = subVector3(l, BlockVolumeUtils.getMin(selMap.get(player.name)));
         if (((pos.x == 0 || pos.x == diff.x - 1) && (pos.y == 0 || pos.y == diff.y - 1)) ||
             ((pos.x == 0 || pos.x == diff.x - 1) && (pos.z == 0 || pos.z == diff.z - 1)) ||
             ((pos.z == 0 || pos.z == diff.z - 1) && (pos.y == 0 || pos.y == diff.y - 1))) {
             setBlockAt(player, l, perm.clone());
             count++;
-            if (count % 5000 == 0) {
-                await sleep(1);
-            }
         }
-    });
-    tellMessage(player, `§aChanged ${count} blocks to ${perm.type.id}`);
+    }, () => {
+        tellMessage(player, `§aChanged ${count} blocks to ${perm.type.id}`);
+    }));
 }

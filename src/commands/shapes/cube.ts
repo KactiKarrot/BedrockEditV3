@@ -1,4 +1,4 @@
-import { Player, BlockTypes, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { Player, BlockTypes, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { selMap, compSelMap, addCuboid, compApplyToAllBlocks } from "selectionUtils";
@@ -42,17 +42,14 @@ function cube(args: string[], player: Player) {
     }
 
     addHistoryEntry(player.name);
-    let vol = new CompoundBlockVolume(floorVector3(player.location))
+    let vol = new CompoundBlockVolume(floorVector3(player.location));
     addCuboid(vol, BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(vol.getOrigin(), {x: -1, y: -1, z: -1})), mode as ShapeModes);
 
     let count = 0;
-    compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(vol, player.dimension, (b, l) => {
         setBlockAt(player, l, perm.clone());
-        count++;
-        if (count % 5000 == 0) {
-            await sleep(1);
-        }
-    })
-
-    tellMessage(player, `§aSuccessfully generated cube (${count} blocks)`)
+        count++
+    }, () => {
+        tellMessage(player, `§aSuccessfully generated cube (${count} blocks)`);
+    }));
 }

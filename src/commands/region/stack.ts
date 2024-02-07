@@ -1,4 +1,4 @@
-import { Player, Direction, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { Player, Direction, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { compSelMap, selMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selectionUtils";
@@ -113,26 +113,28 @@ async function stack(args: string[], player: Player) {
     
     let origin = compSelMap.get(player.name).getOrigin();
     let min = compSelMap.get(player.name).getMin();
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
         if (!air && b.permutation.type.id == 'minecraft:air') {
             return;
         }
         sel[l.x - min.x][l.y - min.y][l.z - min.z] = b.permutation.clone()
-    })
-    let count = 0;
-    for (let i = 0; i < amount; i++) {
-        const deltaVec = shiftVector3(getZeroVector3(), direction, (direction == Direction.North || direction == Direction.South ? selSize.z : (direction == Direction.Up || direction == Direction.Down ? selSize.y : selSize.x)) + offset);
-        compSelMap.get(player.name).translateOrigin(deltaVec);
-        selMap.set(player.name, BlockVolumeUtils.translate(selMap.get(player.name), deltaVec))
-        min = compSelMap.get(player.name).getMin();
-        compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
-            count++;
-            if (count % 1000 == 0) {
-                await sleep(1);
-            }
-            b.setPermutation(sel[l.x - min.x][l.y - min.y][l.z - min.z].clone())
-        })
-    }
-    compSelMap.get(player.name).setOrigin(origin);
-    tellMessage(player, `§aStacked selection ${amount} times (${count} blocks)`);
+    }, () => {
+        let count = 0;
+        for (let i = 0; i < amount; i++) {
+            const deltaVec = shiftVector3(getZeroVector3(), direction, (direction == Direction.North || direction == Direction.South ? selSize.z : (direction == Direction.Up || direction == Direction.Down ? selSize.y : selSize.x)) + offset);
+            compSelMap.get(player.name).translateOrigin(deltaVec);
+            selMap.set(player.name, BlockVolumeUtils.translate(selMap.get(player.name), deltaVec))
+            min = compSelMap.get(player.name).getMin();
+            system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+                count++;
+                b.setPermutation(sel[l.x - min.x][l.y - min.y][l.z - min.z].clone())
+            }, () => {
+                compSelMap.get(player.name).setOrigin(origin);
+                if (!manualSel) {
+                    compSelMap.delete(player.name)
+                }
+                tellMessage(player, `§aStacked selection ${amount} times (${count} blocks)`);
+            }));
+        }
+    }));
 }

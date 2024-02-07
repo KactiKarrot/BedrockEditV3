@@ -1,8 +1,8 @@
-import { BlockTypes, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { BlockTypes, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { selMap, compSelMap, addCuboid, Axis, compApplyToAllBlocks } from "selectionUtils";
-import { tellError, getPermFromHand, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, sleep, tellMessage } from "utils";
+import { tellError, getPermFromHand, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, tellMessage } from "utils";
 commands.set('walls', {
     function: walls,
     description: "Generates four walls",
@@ -32,13 +32,11 @@ function walls(args, player) {
     compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)));
     addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 })), ShapeModes.thin, Axis.Y);
     let count = 0;
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
         setBlockAt(player, l, perm.clone());
         count++;
-        if (count % 5000 == 0) {
-            await sleep(1);
-        }
-    });
-    compSelMap.delete(player.name);
-    tellMessage(player, `§aSuccessfully generated walls (${count} blocks)`);
+    }, () => {
+        compSelMap.delete(player.name);
+        tellMessage(player, `§aSuccessfully generated walls (${count} blocks)`);
+    }));
 }

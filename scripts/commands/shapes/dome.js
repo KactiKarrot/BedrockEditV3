@@ -1,4 +1,4 @@
-import { BlockTypes, BlockPermutation, Direction, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { BlockTypes, BlockPermutation, Direction, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { commands } from "commands";
 import { Axis, addDome, compApplyToAllBlocks, selMap } from "selectionUtils";
 import { getPermFromHand, tellError, addHistoryEntry, setBlockAt, tellMessage, getPrimaryDirection, rotateDirection, floorVector3, multiplyVector3, sleep } from "utils";
@@ -97,12 +97,13 @@ function dome(args, player) {
     let vol = new CompoundBlockVolume(floorVector3(player.location));
     addDome(vol, BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(vol.getOrigin(), { x: -1, y: -1, z: -1 })), mode, ((direction == Direction.Up || direction == Direction.Down) ? Axis.Y : ((direction == Direction.North || direction == Direction.South) ? Axis.Z : Axis.X)), (direction == Direction.Up || direction == Direction.South || direction == Direction.East), fillFaces);
     let count = 0;
-    compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
         setBlockAt(player, l, perm.clone());
         count++;
         if (count % 5000 == 0) {
             await sleep(1);
         }
-    });
-    tellMessage(player, `§aSuccessfully generated dome (${count} blocks)`);
+    }, () => {
+        tellMessage(player, `§aSuccessfully generated dome (${count} blocks)`);
+    }));
 }

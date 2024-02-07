@@ -1,4 +1,4 @@
-import { Player, BlockTypes, BlockPermutation, Direction, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { Player, BlockTypes, BlockPermutation, Direction, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { Axis, addDome, compApplyToAllBlocks, selMap } from "selectionUtils";
@@ -108,12 +108,13 @@ function dome(args: string[], player: Player) {
         fillFaces
     );
     let count = 0;
-    compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
         setBlockAt(player, l, perm.clone());
         count++;
         if (count % 5000 == 0) {
             await sleep(1);
         }
-    })
-    tellMessage(player, `§aSuccessfully generated dome (${count} blocks)`);
+    }, () => {
+        tellMessage(player, `§aSuccessfully generated dome (${count} blocks)`);
+    }))
 }

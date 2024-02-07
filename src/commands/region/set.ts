@@ -1,4 +1,4 @@
-import { Player, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { Player, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { compSelMap, selMap, addCuboid, compApplyToAllBlocks } from "selectionUtils";
@@ -41,15 +41,13 @@ async function set(args: string[], player: Player) {
     }
 
     let count = 0;
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
         setBlockAt(player, l, perm.clone());
         count++;
-        if (count % 5000 == 0) {
-            await sleep(1);
+    }, () => {
+        if (!manualSel) {
+            compSelMap.delete(player.name)
         }
-    })
-    if (!manualSel) {
-        compSelMap.delete(player.name)
-    }
-    tellMessage(player, `§aChanged ${count} blocks to ${perm.type.id}`);
+        tellMessage(player, `§aChanged ${count} blocks to ${perm.type.id}`);
+    }));
 }

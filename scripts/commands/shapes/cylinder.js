@@ -1,7 +1,7 @@
-import { BlockTypes, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { BlockTypes, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { commands } from "commands";
 import { Axis, addCylinder, compApplyToAllBlocks, selMap } from "selectionUtils";
-import { getPermFromHand, tellError, addHistoryEntry, setBlockAt, tellMessage, multiplyVector3, sleep } from "utils";
+import { getPermFromHand, tellError, addHistoryEntry, setBlockAt, tellMessage, multiplyVector3 } from "utils";
 commands.set('cylinder', {
     alias: "cyl",
     function: cylinder,
@@ -73,14 +73,12 @@ function cylinder(args, player) {
     let vol = new CompoundBlockVolume(player.location);
     addCylinder(vol, BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(vol.getOrigin(), { x: -1, y: -1, z: -1 })), mode, direction, fillFaces);
     let count = 0;
-    compApplyToAllBlocks(vol, player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(vol, player.dimension, (b, l) => {
         setBlockAt(player, l, perm.clone());
         count++;
-        if (count % 5000 == 0) {
-            await sleep(1);
-        }
-    });
-    tellMessage(player, `§aSuccessfully generated cylinder (${count} blocks)`);
+    }, () => {
+        tellMessage(player, `§aSuccessfully generated cylinder (${count} blocks)`);
+    }));
     // let blockCount = 0;
     // addHistoryEntry(player.name);
     // for (let i = 0; i < selSize.x; i++) {

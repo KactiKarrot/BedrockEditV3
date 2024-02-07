@@ -1,4 +1,4 @@
-import { Player, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { Player, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { compSelMap, selMap, addCuboid, compApplyToAllBlocks, applyToAllBlocks } from "selectionUtils";
@@ -34,8 +34,9 @@ async function outline(args: string[], player: Player) {
     addHistoryEntry(player.name);
 
     let count = 0;
-    applyToAllBlocks(selMap.get(player.name), player.dimension, async (b, l) => {
-        let diff = BlockVolumeUtils.getSpan(selMap.get(player.name));
+    let diff = BlockVolumeUtils.getSpan(selMap.get(player.name));
+    
+    system.runJob(applyToAllBlocks(selMap.get(player.name), player.dimension, (b, l) => {
         let pos = subVector3(l, BlockVolumeUtils.getMin(selMap.get(player.name)));
         if (
             ((pos.x == 0 || pos.x == diff.x - 1) && (pos.y == 0 || pos.y == diff.y - 1)) ||
@@ -44,10 +45,9 @@ async function outline(args: string[], player: Player) {
         ) {
             setBlockAt(player, l, perm.clone());
             count++;
-            if (count % 5000 == 0) {
-                await sleep(1);
-            }
         }
-    })
-    tellMessage(player, `§aChanged ${count} blocks to ${perm.type.id}`);
+    }, () => {
+        tellMessage(player, `§aChanged ${count} blocks to ${perm.type.id}`);
+    }))
+    
 }

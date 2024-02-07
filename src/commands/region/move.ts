@@ -1,4 +1,4 @@
-import { Player, Direction, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { Player, Direction, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { compSelMap, selMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selectionUtils";
@@ -102,35 +102,29 @@ async function move(args: string[], player: Player) {
     let count = 0;
     // let origin = compSelMap.get(player.name).getOrigin();
     let min = compSelMap.get(player.name).getMin();
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
         if (!air && b.permutation.type.id == perm.type.id) {
             return;
         }
         sel[l.x - min.x][l.y - min.y][l.z - min.z] = b.permutation.clone()
         setBlockAt(player, l, perm.clone());
-        count++;
-        if (count % 1000 == 0) {
-            await sleep(1);
-        }
-    })
-    compSelMap.get(player.name).translateOrigin(shiftVector3(getZeroVector3(), direction, amount));
-    selMap.set(player.name, BlockVolumeUtils.translate(selMap.get(player.name), shiftVector3(getZeroVector3(), direction, amount)))
-    // origin = compSelMap.get(player.name).getOrigin();
-    min = compSelMap.get(player.name).getMin();
-    count = 0; // May need to be separate variable
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
-        if (!air && b.permutation.type.id == perm.type.id) {
-            return;
-        }
-        setBlockAt(player, l, sel[l.x - min.x][l.y - min.y][l.z - min.z].clone())
-        count++;
-        if (count % 1000 == 0) {
-            await sleep(1);
-        }
-    })
-
-    if (!manualSel) {
-        compSelMap.delete(player.name);
-    }
-    tellMessage(player, `§aMoved ${count} blocks ${direction}`)
+    }, () => {
+        compSelMap.get(player.name).translateOrigin(shiftVector3(getZeroVector3(), direction, amount));
+        selMap.set(player.name, BlockVolumeUtils.translate(selMap.get(player.name), shiftVector3(getZeroVector3(), direction, amount)))
+        // origin = compSelMap.get(player.name).getOrigin();
+        min = compSelMap.get(player.name).getMin();
+        count = 0; // May need to be separate variable
+        system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+            if (!air && b.permutation.type.id == perm.type.id) {
+                return;
+            }
+            setBlockAt(player, l, sel[l.x - min.x][l.y - min.y][l.z - min.z].clone())
+            count++;
+        }, () => {
+            if (!manualSel) {
+                compSelMap.delete(player.name);
+            }
+            tellMessage(player, `§aMoved ${count} blocks ${direction}`)
+        }))
+    }))
 }

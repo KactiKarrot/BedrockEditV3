@@ -1,4 +1,4 @@
-import { Player } from "@minecraft/server";
+import { Player, system } from "@minecraft/server";
 import { commands } from "commands";
 import { clipMap, relPosMap } from "main";
 import { selMap } from "selectionUtils";
@@ -31,20 +31,23 @@ async function paste(args, player: Player) {
     addHistoryEntry(player.name);
     let playerPos = floorVector3(player.location);
     let count = 0;
-    for (let x = 0; x < clipSize.x; x++) {
-        for (let y = 0; y < clipSize.y; y++) {
-            for (let z = 0; z < clipSize.z; z++) {
-                count++;
-                if (count % 1000 == 0) {
-                    await sleep(1);
-                }
-                let pos = addVector3(addVector3(relPosMap.get(player.name), playerPos), {x: x, y: y, z: z});
-                // Adds current world position, blockstate before paste, and blockstate after paste to history map entry, can muse pre for undo, post for redo
-                if ((args != "-a" || !(getClipAt(player.name, {x: x, y: y, z: z}).type.id == 'minecraft:air')) &&  getClipAt(player.name, {x: x, y: y, z: z}) != undefined) {
-                    setBlockAt(player, pos, getClipAt(player.name, {x: x, y: y, z: z}).clone());
+
+    function* pasteGen() {
+        for (let x = 0; x < clipSize.x; x++) {
+            for (let y = 0; y < clipSize.y; y++) {
+                for (let z = 0; z < clipSize.z; z++) {
+                    count++;
+                    let pos = addVector3(addVector3(relPosMap.get(player.name), playerPos), {x: x, y: y, z: z});
+                    // Adds current world position, blockstate before paste, and blockstate after paste to history map entry, can muse pre for undo, post for redo
+                    if ((args != "-a" || !(getClipAt(player.name, {x: x, y: y, z: z}).type.id == 'minecraft:air')) && getClipAt(player.name, {x: x, y: y, z: z}) != undefined) {
+                        setBlockAt(player, pos, getClipAt(player.name, {x: x, y: y, z: z}).clone());
+                    }
+                    yield;
                 }
             }
         }
+        tellMessage(player, `§aPasted ${count} blocks from clipboard`);
     }
-    tellMessage(player, `§aPasted ${count} blocks from clipboard`);
+
+    system.runJob(pasteGen)
 }

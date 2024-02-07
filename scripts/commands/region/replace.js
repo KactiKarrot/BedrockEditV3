@@ -1,8 +1,8 @@
-import { CompoundBlockVolume, BlockVolumeUtils, BlockTypes } from "@minecraft/server";
+import { CompoundBlockVolume, BlockVolumeUtils, BlockTypes, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { compSelMap, selMap, addCuboid, compApplyToAllBlocks } from "selectionUtils";
-import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, sleep, tellMessage } from "utils";
+import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, tellMessage } from "utils";
 commands.set('replace', {
     function: replace,
     description: "Replaces given block in selected region with given or held block",
@@ -47,18 +47,16 @@ async function replace(args, player) {
         addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 })), ShapeModes.filled);
     }
     let count = 0;
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
+    system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
         player.sendMessage(JSON.stringify(b.getTags()));
         if (b.type.id == type.id) {
             setBlockAt(player, l, perm.clone());
             count++;
-            if (count % 5000 == 0) {
-                await sleep(1);
-            }
         }
-    });
-    if (!manualSel) {
-        compSelMap.delete(player.name);
-    }
-    tellMessage(player, `§aChanged ${count} blocks to ${perm.type.id}`);
+    }, () => {
+        if (!manualSel) {
+            compSelMap.delete(player.name);
+        }
+        tellMessage(player, `§aChanged ${count} blocks to ${perm.type.id}`);
+    }));
 }

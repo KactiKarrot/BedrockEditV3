@@ -31,14 +31,30 @@ export function cloneVol(vol) {
 export function setStandardSel(sel, from, to) {
     sel = { from: from, to: to };
 }
-export function applyToAllBlocks(vol, dimension, callback) {
+// Apply a function to all blocks with a block volume (no safety checks)
+export function* applyToAllBlocks(vol, dimension, callback, finished) {
     for (let bl of BlockVolumeUtils.getBlockLocationIterator(vol)) {
-        callback(dimension.getBlock(bl), bl);
+        let b = dimension.getBlock(bl);
+        if (b) {
+            callback(b, bl);
+        }
+        yield;
+    }
+    if (finished) {
+        finished();
     }
 }
-export function compApplyToAllBlocks(vol, dimension, callback) {
+// Apply a function to all blocks with a compound block volume (no safety checks)
+export function* compApplyToAllBlocks(vol, dimension, callback, finished) {
     for (let bl of vol.getBlockLocationIterator()) {
-        callback(dimension.getBlock(bl), bl);
+        let b = dimension.getBlock(bl);
+        if (b) {
+            callback(b, bl);
+        }
+        yield;
+    }
+    if (finished) {
+        finished();
     }
 }
 export function getCompSpan(vol) {
