@@ -45,5 +45,5 @@ async function paste(args, player) {
         }
         tellMessage(player, `§aPasted ${count} blocks from clipboard`);
     }
-    system.runJob(pasteGen);
+    system.runJob(pasteGen());
 }

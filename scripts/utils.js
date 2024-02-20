@@ -60,6 +60,9 @@ export function shrinkVolume(vol, delta) {
 }
 export function getPermFromHand(player) {
     let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId;
+    if (typeId == undefined) {
+        typeId = "minecraft:air";
+    }
     // For some reason, regular wood planks are the only items to still use data values?
     if (typeId == 'minecraft:planks') {
         let ids = ['oak', 'spruce', 'birch', 'jungle', 'acacia', 'dark_oak'];
@@ -83,7 +86,7 @@ export function getPermFromHand(player) {
     if (typeId.length >= 15 && typeId.substring(typeId.length - 5) == '_sign') {
         typeId = typeId.substring(0, typeId.length - 4) + 'standing_sign';
     }
-    if (typeId == undefined || BlockTypes.get(typeId) == undefined) {
+    if (BlockTypes.get(typeId) == undefined) {
         typeId = "minecraft:air";
     }
     return BlockPermutation.resolve(typeId);

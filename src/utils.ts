@@ -70,6 +70,10 @@ export function shrinkVolume(vol: BlockVolume, delta: Vector3): BlockVolume {
 export function getPermFromHand(player: Player): BlockPermutation {
     let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId;
 
+    if (typeId == undefined) {
+        typeId = "minecraft:air";
+    }
+
     // For some reason, regular wood planks are the only items to still use data values?
     if (typeId == 'minecraft:planks') {
         let ids = ['oak', 'spruce', 'birch', 'jungle', 'acacia', 'dark_oak'];
@@ -94,7 +98,7 @@ export function getPermFromHand(player: Player): BlockPermutation {
     if (typeId.length >= 15 && typeId.substring(typeId.length - 5) == '_sign') {
         typeId = typeId.substring(0, typeId.length - 4) + 'standing_sign';
     }
-    if (typeId == undefined || BlockTypes.get(typeId) == undefined) {
+    if (BlockTypes.get(typeId) == undefined) {
         typeId = "minecraft:air";
     }
     

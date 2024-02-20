@@ -3,7 +3,7 @@ import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { relPosMap } from "main";
 import { selMap, compSelMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selectionUtils";
-import { tellError, floorVector3, multiplyVector3, subVector3, minVector3, setClipSize, setClipAt, tellMessage } from "utils";
+import { tellError, floorVector3, multiplyVector3, subVector3, minVector3, setClipSize, setClipAt, tellMessage, getClipAt } from "utils";
 
 commands.set('copy', {
     alias: "cp",

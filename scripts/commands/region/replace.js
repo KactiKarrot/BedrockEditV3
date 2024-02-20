@@ -6,9 +6,9 @@ import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, floorVecto
 commands.set('replace', {
     function: replace,
     description: "Replaces given block in selected region with given or held block",
-    extDescription: "Replaces given block in selected region with given or held block\nreplacetileName: Block to replace\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
+    extDescription: "Replaces given block in selected region with given or held block\nreplacetileName: Block to replace (defaults to air)\ntileName: Block to set (defaults to block in players hand. If hand is empty or is not a placeable item, sets air",
     usage: [
-        "<replaceTileName: Block> [tileName: Block]"
+        "[replaceTileName: Block] [tileName: Block]"
     ]
 });
 //replaces given block (vanilla /fill block replace block)
@@ -23,10 +23,10 @@ async function replace(args, player) {
         return;
     }
     let perm = getPermFromHand(player);
-    if (args.length == 0) {
-        tellError(player, 'Not enough arguments');
+    let type = BlockTypes.get('minecraft:air');
+    if (args[0]) {
+        type = BlockTypes.get(args[0]);
     }
-    let type = BlockTypes.get(args[0]);
     if (type == undefined) {
         tellError(player, `Block ${args[0]} not found`);
         return;
@@ -48,7 +48,6 @@ async function replace(args, player) {
     }
     let count = 0;
     system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
-        player.sendMessage(JSON.stringify(b.getTags()));
         if (b.type.id == type.id) {
             setBlockAt(player, l, perm.clone());
             count++;

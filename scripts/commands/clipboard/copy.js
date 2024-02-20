@@ -1,4 +1,4 @@
-import { CompoundBlockVolume, BlockVolumeUtils } from "@minecraft/server";
+import { CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { relPosMap } from "main";
@@ -31,14 +31,15 @@ function copy(args, player) {
     relPosMap.set(player.name, subVector3(minVector3(selMap.get(player.name).from, selMap.get(player.name).to), floorVector3(player.location)));
     setClipSize(player.name, getCompSpan(compSelMap.get(player.name)));
     let count = 0;
-    compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+    system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
         setClipAt(player.name, subVector3(l, compSelMap.get(player.name).getBoundingBox().min), b.permutation.clone());
         count++;
-    });
-    if (!manualSel) {
-        compSelMap.delete(player.name);
-    }
-    if (args != null) {
-        tellMessage(player, `§aCopied ${count} blocks to clipboard`);
-    }
+    }, () => {
+        if (!manualSel) {
+            compSelMap.delete(player.name);
+        }
+        if (args != null) {
+            tellMessage(player, `§aCopied ${count} blocks to clipboard`);
+        }
+    }));
 }

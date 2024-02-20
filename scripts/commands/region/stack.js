@@ -112,28 +112,29 @@ async function stack(args, player) {
         sel[l.x - min.x][l.y - min.y][l.z - min.z] = b.permutation.clone();
     }, () => {
         let count = 0;
-        //BROKEN
-        // Doing runjob inside for loop while modifying values the job uses causes it to only run the job one time
-        function* stackgen(i) {
+        let originalSel = selMap.get(player.name);
+        function stackgen(i) {
             if (i >= amount) {
+                compSelMap.get(player.name).setOrigin(origin);
+                if (!manualSel) {
+                    compSelMap.delete(player.name);
+                }
+                selMap.set(player.name, originalSel);
+                tellMessage(player, `§aStacked selection ${amount} times (${count} blocks)`);
                 return;
             }
-            i++;
+            ;
             const deltaVec = shiftVector3(getZeroVector3(), direction, (direction == Direction.North || direction == Direction.South ? selSize.z : (direction == Direction.Up || direction == Direction.Down ? selSize.y : selSize.x)) + offset);
             compSelMap.get(player.name).translateOrigin(deltaVec);
             selMap.set(player.name, BlockVolumeUtils.translate(selMap.get(player.name), deltaVec));
             min = compSelMap.get(player.name).getMin();
-            compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
+            system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
                 b.setPermutation(sel[l.x - min.x][l.y - min.y][l.z - min.z].clone());
                 count++;
-            });
-            system.runJob(stackgen(i));
+            }, () => {
+                stackgen(i + 1);
+            }));
         }
-        system.runJob(stackgen(0));
-        compSelMap.get(player.name).setOrigin(origin);
-        if (!manualSel) {
-            compSelMap.delete(player.name);
-        }
-        tellMessage(player, `§aStacked selection ${amount} times (${count} blocks)`);
+        stackgen(0);
     }));
 }

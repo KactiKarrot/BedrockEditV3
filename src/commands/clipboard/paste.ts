@@ -48,6 +48,6 @@ async function paste(args, player: Player) {
         }
         tellMessage(player, `§aPasted ${count} blocks from clipboard`);
     }
-
-    system.runJob(pasteGen)
+    
+    system.runJob(pasteGen())
 }
