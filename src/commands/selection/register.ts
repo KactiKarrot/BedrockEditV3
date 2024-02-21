@@ -1,4 +1,5 @@
 import './positions'
+import './swap'
 import './shift'
 import './shrink'
 import './expand'
