@@ -15,13 +15,6 @@ commands.set('cylinder', {
 })
 
 function cylinder(args: string[], player: Player) {
-    // tellMessage(player, 'This command is not yet implemented')
-    // return;
-
-
-
-
-
     let direction = Axis.Y;
     let mode = 'filled'
     let perm = getPermFromHand(player);
