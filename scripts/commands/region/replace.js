@@ -1,7 +1,7 @@
-import { CompoundBlockVolume, BlockVolumeUtils, BlockTypes, system } from "@minecraft/server";
+import { CompoundBlockVolume, BlockTypes, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
-import { compSelMap, selMap, addCuboid, compApplyToAllBlocks } from "selectionUtils";
+import { compSelMap, selMap, addCuboid, compApplyToAllBlocks, cloneVol } from "selectionUtils";
 import { tellError, getPermFromHand, getPermFromStr, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, tellMessage } from "utils";
 commands.set('replace', {
     function: replace,
@@ -44,12 +44,14 @@ async function replace(args, player) {
     if (!compSelMap.has(player.name)) {
         manualSel = false;
         compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)));
-        addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 })), ShapeModes.filled);
+        let newVol = cloneVol(selMap.get(player.name));
+        newVol.translate(multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 }));
+        addCuboid(compSelMap.get(player.name), newVol, ShapeModes.filled);
     }
     let count = 0;
     system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
         if (b.type.id == type.id) {
-            setBlockAt(player, l, perm.clone());
+            setBlockAt(player, l, perm /*.clone()*/);
             count++;
         }
     }, () => {

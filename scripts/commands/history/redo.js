@@ -35,7 +35,7 @@ function redo(args, player) {
         historyIndexMap.set(name, historyIndexMap.get(name) - 1);
         let entry = getHistory(name, historyIndexMap.get(name));
         for (let i = 0; i < entry.length; i++) {
-            player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].post.clone());
+            player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].post /*.clone()*/);
             changes++;
         }
         actions++;

@@ -1,7 +1,7 @@
-import { BlockVolumeUtils, CompoundBlockVolume, Player } from "@minecraft/server";
+import { CompoundBlockVolume, Player } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands"
-import { addCuboid, compSelMap, selMap, subtractCuboid } from "selectionUtils";
+import { addCuboid, cloneVol, compSelMap, selMap, subtractCuboid } from "selectionUtils";
 import { floorVector3, multiplyVector3, tellError, tellMessage } from "utils";
 
 commands.set('subtractcube', {
@@ -35,7 +35,9 @@ function removeCubeCommand(args: string[], player: Player) {
     if (!compSelMap.has(player.name)) {
         compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)));
     }
-    subtractCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), {x: -1, y: -1, z: -1})), mode as ShapeModes);
+    let newVol = cloneVol(selMap.get(player.name));
+    newVol.translate(multiplyVector3(compSelMap.get(player.name).getOrigin(), {x: -1, y: -1, z: -1}))
+    subtractCuboid(compSelMap.get(player.name), newVol, mode as ShapeModes);
 
     tellMessage(player, `§aSubtracted cube from selection`);
 }

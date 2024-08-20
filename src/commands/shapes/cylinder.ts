@@ -1,7 +1,7 @@
-import { Player, BlockTypes, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
+import { Player, BlockTypes, BlockPermutation, CompoundBlockVolume, system } from "@minecraft/server";
 import { generateEllipse, ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
-import { Axis, addCylinder, compApplyToAllBlocks, selMap } from "selectionUtils";
+import { Axis, addCylinder, cloneVol, compApplyToAllBlocks, selMap } from "selectionUtils";
 import { getPermFromHand, tellError, addVector3, diffVector3, addHistoryEntry, minVector3, setBlockAt, tellMessage, multiplyVector3, sleep } from "utils";
 
 commands.set('cylinder', {
@@ -16,7 +16,7 @@ commands.set('cylinder', {
 
 function cylinder(args: string[], player: Player) {
     let direction = Axis.Y;
-    let mode = 'filled'
+    let mode = 'filled';
     let perm = getPermFromHand(player);
     let fillFaces = true;
 
@@ -76,11 +76,13 @@ function cylinder(args: string[], player: Player) {
 
     addHistoryEntry(player.name);
     let vol = new CompoundBlockVolume(player.location);
-    addCylinder(vol, BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(vol.getOrigin(), {x: -1, y: -1, z: -1})), mode as ShapeModes, direction, fillFaces);
+    let newVol = cloneVol(selMap.get(player.name));
+    newVol.translate(multiplyVector3(vol.getOrigin(), {x: -1, y: -1, z: -1}));
+    addCylinder(vol, newVol, mode as ShapeModes, direction, fillFaces);
 
     let count = 0;
     system.runJob(compApplyToAllBlocks(vol, player.dimension, (b, l) => {
-        setBlockAt(player, l, perm.clone());
+        setBlockAt(player, l, perm/*.clone()*/);
         count++;
     }, () => {
         tellMessage(player, `§aSuccessfully generated cylinder (${count} blocks)`)

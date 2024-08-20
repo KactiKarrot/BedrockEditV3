@@ -40,7 +40,7 @@ async function paste(args, player: Player) {
                     let pos = addVector3(addVector3(relPosMap.get(player.name), playerPos), {x: x, y: y, z: z});
                     // Adds current world position, blockstate before paste, and blockstate after paste to history map entry, can muse pre for undo, post for redo
                     if ((args != "-a" || !(getClipAt(player.name, {x: x, y: y, z: z}).type.id == 'minecraft:air')) && getClipAt(player.name, {x: x, y: y, z: z}) != undefined) {
-                        setBlockAt(player, pos, getClipAt(player.name, {x: x, y: y, z: z}).clone());
+                        setBlockAt(player, pos, getClipAt(player.name, {x: x, y: y, z: z})/*.clone()*/);
                     }
                     yield;
                 }

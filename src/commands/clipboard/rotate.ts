@@ -58,7 +58,7 @@ function rotate(args, player: Player) {
             for (let j = 0; j < clipSize.y; j++) {
                 for (let k = 0; k < clipSize.x; k++) {
                     if (oldClip[i][j][clipSize.x - 1 - k] != undefined) {
-                        newClip[k][j][i] = oldClip[0 + i][j][clipSize.x - 1 - k].clone();
+                        newClip[k][j][i] = oldClip[0 + i][j][clipSize.x - 1 - k]/*.clone()*/;
                         newClip[k][j][i] = rotatePerm(newClip[k][j][i]);
                     }
                     

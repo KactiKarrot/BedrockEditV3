@@ -1,4 +1,4 @@
-import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent, Vector2, world, system, BlockVolume, BlockVolumeUtils} from "@minecraft/server"
+import {Player, Vector3, BlockPermutation, Direction, BlockTypes, EntityInventoryComponent, Vector2, world, system, BlockVolume} from "@minecraft/server"
 import { commands } from "commands";
 import { historyMap, clipMap, HistoryEntry, historyIndexMap, historyEnabled } from "main"
 import { Axis, selMap } from "selectionUtils";
@@ -50,8 +50,9 @@ export function sleep(ticks: number) {
 }
 
 export function shrinkVolume(vol: BlockVolume, delta: Vector3): BlockVolume {
-    let newVol: BlockVolume = {from: BlockVolumeUtils.getMin(vol), to: BlockVolumeUtils.getMax(vol)};
-    let span = BlockVolumeUtils.getSpan(newVol);
+    let newVol = new BlockVolume(vol.getMin(), vol.getMax());
+
+    let span = newVol.getSpan();
     if (span.x > 2) {
         newVol.from.x += delta.x;
         newVol.to.x -= delta.x;
@@ -68,7 +69,7 @@ export function shrinkVolume(vol: BlockVolume, delta: Vector3): BlockVolume {
 }
 
 export function getPermFromHand(player: Player): BlockPermutation {
-    let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId;
+    let typeId = (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlotIndex)?.typeId;
 
     if (typeId == undefined) {
         typeId = "minecraft:air";
@@ -79,7 +80,7 @@ export function getPermFromHand(player: Player): BlockPermutation {
         let ids = ['oak', 'spruce', 'birch', 'jungle', 'acacia', 'dark_oak'];
         let perm = BlockPermutation.resolve(typeId);
         ids.forEach((e) => {
-            if (perm.withState('wood_type', e).getItemStack().isStackableWith((player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)).valueOf() == true) {
+            if (perm.withState('wood_type', e).getItemStack().isStackableWith((player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlotIndex)).valueOf() == true) {
                 perm =  perm.withState('wood_type', e);
             }
         })
@@ -154,8 +155,8 @@ export function setBlockAt(player: Player, pos: Vector3, perm: BlockPermutation)
     if (historyEnabled) {
         addToHistoryEntry(player.name, {
             pos: pos,
-            pre: player.dimension.getBlock(pos).permutation.clone(),
-            post: perm.clone()
+            pre: player.dimension.getBlock(pos).permutation/*.clone()*/,
+            post: perm/*.clone()*/
         });
     }
     if (player.dimension.getBlock(pos).isValid()) {
@@ -169,8 +170,8 @@ export function setBlockAt(player: Player, pos: Vector3, perm: BlockPermutation)
 export function forceSetBlockAt(player: Player, pos: Vector3, perm: BlockPermutation) {
     forceAddToHistoryEntry(player.name, {
         pos: pos,
-        pre: player.dimension.getBlock(pos).permutation.clone(),
-        post: perm.clone()
+        pre: player.dimension.getBlock(pos).permutation/*.clone()*/,
+        post: perm/*.clone()*/
     });
     player.dimension.getBlock(pos).setPermutation(perm);
 }

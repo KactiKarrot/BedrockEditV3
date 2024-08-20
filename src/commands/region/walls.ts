@@ -1,7 +1,7 @@
-import { Player, BlockTypes, BlockPermutation, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
+import { Player, BlockTypes, BlockPermutation, CompoundBlockVolume, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
-import { selMap, compSelMap, addCuboid, Axis, compApplyToAllBlocks } from "selectionUtils";
+import { selMap, compSelMap, addCuboid, Axis, compApplyToAllBlocks, cloneVol } from "selectionUtils";
 import { tellError, getPermFromHand, addHistoryEntry, floorVector3, multiplyVector3, setBlockAt, sleep, tellMessage } from "utils";
 
 commands.set('walls', {
@@ -33,11 +33,13 @@ function walls(args: string[], player: Player) {
 
     addHistoryEntry(player.name);
     compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)))
-    addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), {x: -1, y: -1, z: -1})), ShapeModes.thin, Axis.Y);
+    let newVol = cloneVol(selMap.get(player.name));
+    newVol.translate(multiplyVector3(compSelMap.get(player.name).getOrigin(), {x: -1, y: -1, z: -1}));
+    addCuboid(compSelMap.get(player.name), newVol, ShapeModes.thin, Axis.Y);
 
     let count = 0;
     system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
-        setBlockAt(player, l, perm.clone());
+        setBlockAt(player, l, perm/*.clone()*/);
         count++;
     }, () => {
         compSelMap.delete(player.name);

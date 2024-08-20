@@ -1,7 +1,7 @@
-import { Direction, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
+import { Direction, CompoundBlockVolume, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
-import { compSelMap, selMap, addCuboid, getCompSpan, compApplyToAllBlocks } from "selectionUtils";
+import { compSelMap, selMap, addCuboid, getCompSpan, compApplyToAllBlocks, cloneVol } from "selectionUtils";
 import { tellError, getPrimaryDirection, rotateDirection, floorVector3, multiplyVector3, addHistoryEntry, shiftVector3, getZeroVector3, tellMessage } from "utils";
 commands.set('stack', {
     function: stack,
@@ -98,7 +98,9 @@ async function stack(args, player) {
     if (!compSelMap.has(player.name)) {
         manualSel = false;
         compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)));
-        addCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 })), ShapeModes.filled);
+        let newVol = cloneVol(selMap.get(player.name));
+        newVol.translate(multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 }));
+        addCuboid(compSelMap.get(player.name), newVol, ShapeModes.filled);
     }
     let selSize = getCompSpan(compSelMap.get(player.name));
     let sel = Array(selSize.x).fill(null).map(() => Array(selSize.y).fill(null).map(() => Array(selSize.z).fill(null)));
@@ -109,7 +111,7 @@ async function stack(args, player) {
         if (!air && b.permutation.type.id == 'minecraft:air') {
             return;
         }
-        sel[l.x - min.x][l.y - min.y][l.z - min.z] = b.permutation.clone();
+        sel[l.x - min.x][l.y - min.y][l.z - min.z] = b.permutation; /*.clone()*/
     }, () => {
         let count = 0;
         let originalSel = selMap.get(player.name);
@@ -126,10 +128,12 @@ async function stack(args, player) {
             ;
             const deltaVec = shiftVector3(getZeroVector3(), direction, (direction == Direction.North || direction == Direction.South ? selSize.z : (direction == Direction.Up || direction == Direction.Down ? selSize.y : selSize.x)) + offset);
             compSelMap.get(player.name).translateOrigin(deltaVec);
-            selMap.set(player.name, BlockVolumeUtils.translate(selMap.get(player.name), deltaVec));
+            let newVol = cloneVol(selMap.get(player.name));
+            newVol.translate(deltaVec);
+            selMap.set(player.name, newVol);
             min = compSelMap.get(player.name).getMin();
             system.runJob(compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, (b, l) => {
-                b.setPermutation(sel[l.x - min.x][l.y - min.y][l.z - min.z].clone());
+                b.setPermutation(sel[l.x - min.x][l.y - min.y][l.z - min.z] /*.clone()*/);
                 count++;
             }, () => {
                 stackgen(i + 1);

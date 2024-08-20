@@ -32,10 +32,10 @@ function mirror(args, player) {
             for (let k = 0; k < clipSize.z; k++) {
                 if ((axis == 'x' && oldClip[clipSize.x - 1 - i][j][k] != undefined) || oldClip[i][j][clipSize.z - 1 - k] != undefined) {
                     if (axis == 'x') {
-                        newClip[i][j][k] = oldClip[clipSize.x - 1 - i][j][k].clone();
+                        newClip[i][j][k] = oldClip[clipSize.x - 1 - i][j][k] /*.clone()*/;
                     }
                     else {
-                        newClip[i][j][k] = oldClip[i][j][clipSize.z - 1 - k].clone();
+                        newClip[i][j][k] = oldClip[i][j][clipSize.z - 1 - k] /*.clone()*/;
                     }
                     //Doesnt work to everything (stairs)
                     newClip[i][j][k] = rotatePerm(newClip[i][j][k]);

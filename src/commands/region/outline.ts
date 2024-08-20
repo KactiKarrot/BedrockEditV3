@@ -1,4 +1,4 @@
-import { Player, CompoundBlockVolume, BlockVolumeUtils, system } from "@minecraft/server";
+import { Player, CompoundBlockVolume, system } from "@minecraft/server";
 import { ShapeModes } from "Circle-Generator/Controller";
 import { commands } from "commands";
 import { compSelMap, selMap, addCuboid, compApplyToAllBlocks, applyToAllBlocks } from "selectionUtils";
@@ -34,16 +34,16 @@ async function outline(args: string[], player: Player) {
     addHistoryEntry(player.name);
 
     let count = 0;
-    let diff = BlockVolumeUtils.getSpan(selMap.get(player.name));
+    let diff = selMap.get(player.name).getSpan();
     
     system.runJob(applyToAllBlocks(selMap.get(player.name), player.dimension, (b, l) => {
-        let pos = subVector3(l, BlockVolumeUtils.getMin(selMap.get(player.name)));
+        let pos = subVector3(l, selMap.get(player.name).getMin());
         if (
             ((pos.x == 0 || pos.x == diff.x - 1) && (pos.y == 0 || pos.y == diff.y - 1)) ||
             ((pos.x == 0 || pos.x == diff.x - 1) && (pos.z == 0 || pos.z == diff.z - 1)) || 
             ((pos.z == 0 || pos.z == diff.z - 1) && (pos.y == 0 || pos.y == diff.y - 1))
         ) {
-            setBlockAt(player, l, perm.clone());
+            setBlockAt(player, l, perm/*.clone()*/);
             count++;
         }
     }, () => {

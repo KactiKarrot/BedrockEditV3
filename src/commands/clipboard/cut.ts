@@ -23,7 +23,7 @@ async function cut(args, player: Player) {
     setClipSize(player.name, addVector3({x: 1, y: 1, z: 1}, subVector3(compSelMap.get(player.name).getBoundingBox().max, compSelMap.get(player.name).getBoundingBox().min)))
     let count = 0;
     compApplyToAllBlocks(compSelMap.get(player.name), player.dimension, async (b, l) => {
-        setBlockAt(player, l, perm.clone())
+        setBlockAt(player, l, perm/*.clone()*/)
         count++;
         if (count % 1000 == 0) {
             await sleep(1);

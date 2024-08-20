@@ -1,4 +1,4 @@
-import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack, BlockVolumeUtils } from "@minecraft/server";
+import { world, system, Vector3, BlockPermutation, Player, EntityInventoryComponent, ItemStack } from "@minecraft/server";
 import { commands } from "commands";
 import { addVector3, compareVector3, getByAlias, getZeroVector3, tellError } from "utils";
 import * as tool from "./tool";
@@ -161,8 +161,8 @@ system.runInterval(() => {
             return;
         }
         let sel = selMap.get(p.name);
-        let min = BlockVolumeUtils.getMin(sel);
-        let diff = BlockVolumeUtils.getSpan(sel);
+        let min = sel.getMin();
+        let diff = sel.getSpan();
         for (let x = 0; x < diff.x; x++) {
             for (let y = 0; y < diff.y; y++) {
                 for (let z = 0; z < diff.z; z++) {
@@ -300,24 +300,24 @@ system.afterEvents.scriptEventReceive.subscribe((data) => {
 }, {namespaces: ['be']})
 
 world.beforeEvents.playerBreakBlock.subscribe((data) => {
-    if (data.player.hasTag("BEUser") && (data.player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(data.player.selectedSlot)?.typeId == currentWand.typeId) {
+    if (data.player.hasTag("BEUser") && (data.player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(data.player.selectedSlotIndex)?.typeId == currentWand.typeId) {
         system.run(() => {commands.get('pos1').function(['facing'], data.player)});
         data.cancel = true;
     }
 })
-
 world.afterEvents.entityHitBlock.subscribe((data) => {
     if (data.damagingEntity.typeId == 'minecraft:player') {
         let player = data.damagingEntity as Player;
-        if (player.hasTag("BEUser") && (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlot)?.typeId == currentWand.typeId) {
+        if (player.hasTag("BEUser") && (player.getComponent("minecraft:inventory") as EntityInventoryComponent).container.getItem(player.selectedSlotIndex)?.typeId == currentWand.typeId) {
             commands.get('pos1').function(['facing'], player);
         }
     }
 })
 
-world.afterEvents.playerInteractWithBlock.subscribe((data) => {
+world.beforeEvents.playerInteractWithBlock.subscribe((data) => {
     if(data.player.hasTag("BEUser") && data.itemStack?.typeId == currentWand.typeId) {
-        commands.get('pos2').function(['facing'], data.player);
+        system.run(() => {commands.get('pos2').function(['facing'], data.player)});
+        data.cancel = true;
     }
 })
 

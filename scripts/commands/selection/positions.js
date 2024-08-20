@@ -1,4 +1,4 @@
-import { BlockVolumeUtils } from "@minecraft/server";
+import { BlockVolume } from "@minecraft/server";
 import { commands } from "commands";
 import { selMap } from "selectionUtils";
 import { tellError, floorVector3, compareVector3, tellMessage } from "utils";
@@ -108,13 +108,13 @@ function pos1(args, player, pos = null) {
             selMap.get(player.name).from = pos;
         }
         else {
-            selMap.set(player.name, { from: pos, to: undefined });
+            selMap.set(player.name, new BlockVolume(pos, pos));
         }
         if (selMap.get(player.name).to == undefined) {
             tellMessage(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z}`);
         }
         else {
-            tellMessage(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z} (${BlockVolumeUtils.getCapacity(selMap.get(player.name))} blocks)`);
+            tellMessage(player, `§5Position 1 set to ${pos.x}, ${pos.y}, ${pos.z} (${selMap.get(player.name).getCapacity()} blocks)`);
         }
     }
 }
@@ -202,13 +202,13 @@ function pos2(args, player, pos = null) {
             selMap.get(player.name).to = pos;
         }
         else {
-            selMap.set(player.name, { to: pos, from: undefined });
+            selMap.set(player.name, new BlockVolume(pos, pos));
         }
         if (selMap.get(player.name).from == undefined) {
             tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z}`);
         }
         else {
-            tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${BlockVolumeUtils.getCapacity(selMap.get(player.name))} blocks)`);
+            tellMessage(player, `§5Position 2 set to ${pos.x}, ${pos.y}, ${pos.z} (${selMap.get(player.name).getCapacity()} blocks)`);
         }
     }
 }

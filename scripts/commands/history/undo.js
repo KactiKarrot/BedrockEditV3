@@ -37,7 +37,7 @@ function undo(args, player) {
         }
         let entry = getHistory(name, historyIndexMap.get(name));
         for (let i = entry.length - 1; i >= 0; i--) {
-            player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].pre.clone());
+            player.dimension.getBlock(entry[i].pos).setPermutation(entry[i].pre /*.clone()*/);
             changes++;
         }
         historyIndexMap.set(name, historyIndexMap.get(name) + 1);

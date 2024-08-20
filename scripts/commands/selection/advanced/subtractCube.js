@@ -1,6 +1,6 @@
-import { BlockVolumeUtils, CompoundBlockVolume } from "@minecraft/server";
+import { CompoundBlockVolume } from "@minecraft/server";
 import { commands } from "commands";
-import { compSelMap, selMap, subtractCuboid } from "selectionUtils";
+import { cloneVol, compSelMap, selMap, subtractCuboid } from "selectionUtils";
 import { floorVector3, multiplyVector3, tellError, tellMessage } from "utils";
 commands.set('subtractcube', {
     alias: "subcube",
@@ -31,6 +31,8 @@ function removeCubeCommand(args, player) {
     if (!compSelMap.has(player.name)) {
         compSelMap.set(player.name, new CompoundBlockVolume(floorVector3(player.location)));
     }
-    subtractCuboid(compSelMap.get(player.name), BlockVolumeUtils.translate(selMap.get(player.name), multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 })), mode);
+    let newVol = cloneVol(selMap.get(player.name));
+    newVol.translate(multiplyVector3(compSelMap.get(player.name).getOrigin(), { x: -1, y: -1, z: -1 }));
+    subtractCuboid(compSelMap.get(player.name), newVol, mode);
     tellMessage(player, `§aSubtracted cube from selection`);
 }

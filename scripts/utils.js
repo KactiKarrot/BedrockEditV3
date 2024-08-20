@@ -1,4 +1,4 @@
-import { BlockPermutation, Direction, BlockTypes, world, system, BlockVolumeUtils } from "@minecraft/server";
+import { BlockPermutation, Direction, BlockTypes, world, system, BlockVolume } from "@minecraft/server";
 import { commands } from "commands";
 import { historyMap, clipMap, historyIndexMap, historyEnabled } from "main";
 import { selMap } from "selectionUtils";
@@ -42,8 +42,8 @@ export function sleep(ticks) {
     });
 }
 export function shrinkVolume(vol, delta) {
-    let newVol = { from: BlockVolumeUtils.getMin(vol), to: BlockVolumeUtils.getMax(vol) };
-    let span = BlockVolumeUtils.getSpan(newVol);
+    let newVol = new BlockVolume(vol.getMin(), vol.getMax());
+    let span = newVol.getSpan();
     if (span.x > 2) {
         newVol.from.x += delta.x;
         newVol.to.x -= delta.x;
@@ -59,7 +59,7 @@ export function shrinkVolume(vol, delta) {
     return newVol;
 }
 export function getPermFromHand(player) {
-    let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)?.typeId;
+    let typeId = player.getComponent("minecraft:inventory").container.getItem(player.selectedSlotIndex)?.typeId;
     if (typeId == undefined) {
         typeId = "minecraft:air";
     }
@@ -68,7 +68,7 @@ export function getPermFromHand(player) {
         let ids = ['oak', 'spruce', 'birch', 'jungle', 'acacia', 'dark_oak'];
         let perm = BlockPermutation.resolve(typeId);
         ids.forEach((e) => {
-            if (perm.withState('wood_type', e).getItemStack().isStackableWith(player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot)).valueOf() == true) {
+            if (perm.withState('wood_type', e).getItemStack().isStackableWith(player.getComponent("minecraft:inventory").container.getItem(player.selectedSlotIndex)).valueOf() == true) {
                 perm = perm.withState('wood_type', e);
             }
         });
@@ -139,8 +139,8 @@ export function setBlockAt(player, pos, perm) {
     if (historyEnabled) {
         addToHistoryEntry(player.name, {
             pos: pos,
-            pre: player.dimension.getBlock(pos).permutation.clone(),
-            post: perm.clone()
+            pre: player.dimension.getBlock(pos).permutation /*.clone()*/,
+            post: perm /*.clone()*/
         });
     }
     if (player.dimension.getBlock(pos).isValid()) {
@@ -154,8 +154,8 @@ export function setBlockAt(player, pos, perm) {
 export function forceSetBlockAt(player, pos, perm) {
     forceAddToHistoryEntry(player.name, {
         pos: pos,
-        pre: player.dimension.getBlock(pos).permutation.clone(),
-        post: perm.clone()
+        pre: player.dimension.getBlock(pos).permutation /*.clone()*/,
+        post: perm /*.clone()*/
     });
     player.dimension.getBlock(pos).setPermutation(perm);
 }
